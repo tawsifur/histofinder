@@ -1,0 +1,52 @@
+{
+ "threshold": 0.2315,
+ "showcase": [
+  "TCGA-HU-A4GT",
+  "TCGA-D7-A6EY",
+  "TCGA-HF-A5NB",
+  "TCGA-CG-4465",
+  "TCGA-BR-8683",
+  "TCGA-BR-8485",
+  "TCGA-HF-7133"
+ ],
+ "roles": {
+  "TCGA-HU-A4GT": "caught",
+  "TCGA-D7-A6EY": "caught",
+  "TCGA-HF-A5NB": "caught",
+  "TCGA-CG-4465": "caught",
+  "TCGA-CG-4305": "caught",
+  "TCGA-HU-A4GU": "caught",
+  "TCGA-HF-7133": "false_alarm",
+  "TCGA-CD-8528": "false_alarm",
+  "TCGA-VQ-A91S": "false_alarm",
+  "TCGA-BR-8683": "cleared",
+  "TCGA-BR-8485": "cleared",
+  "TCGA-VQ-A91V": "cleared",
+  "TCGA-CG-4300": "cleared",
+  "TCGA-BR-8590": "cleared",
+  "TCGA-BR-8373": "cleared",
+  "TCGA-RD-A8N2": "cleared",
+  "TCGA-CD-A489": "cleared",
+  "TCGA-CD-A48C": "cleared"
+ },
+ "images": [
+  "TCGA-HU-A4GT",
+  "TCGA-D7-A6EY",
+  "TCGA-HF-A5NB",
+  "TCGA-CG-4465",
+  "TCGA-CG-4305",
+  "TCGA-HU-A4GU",
+  "TCGA-HF-7133",
+  "TCGA-CD-8528",
+  "TCGA-VQ-A91S",
+  "TCGA-BR-8683",
+  "TCGA-BR-8485",
+  "TCGA-VQ-A91V",
+  "TCGA-CG-4300",
+  "TCGA-BR-8590",
+  "TCGA-BR-8373",
+  "TCGA-RD-A8N2",
+  "TCGA-CD-A489",
+  "TCGA-CD-A48C"
+ ]
+}

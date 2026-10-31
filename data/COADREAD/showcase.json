@@ -1,0 +1,37 @@
+{
+ "threshold": 0.5388,
+ "showcase": [
+  "TCGA-G4-6304",
+  "TCGA-AA-A022",
+  "TCGA-CK-5916",
+  "TCGA-F5-6465",
+  "TCGA-CM-4744",
+  "TCGA-AM-5820"
+ ],
+ "roles": {
+  "TCGA-G4-6304": "caught",
+  "TCGA-AA-A022": "caught",
+  "TCGA-CK-5916": "caught",
+  "TCGA-AM-5820": "false_alarm",
+  "TCGA-F5-6465": "cleared",
+  "TCGA-CM-4744": "cleared",
+  "TCGA-AG-3894": "cleared",
+  "TCGA-AG-4015": "cleared",
+  "TCGA-EF-5830": "cleared",
+  "TCGA-AA-3867": "cleared",
+  "TCGA-SS-A7HO": "cleared"
+ },
+ "images": [
+  "TCGA-G4-6304",
+  "TCGA-AA-A022",
+  "TCGA-CK-5916",
+  "TCGA-AM-5820",
+  "TCGA-F5-6465",
+  "TCGA-CM-4744",
+  "TCGA-AG-3894",
+  "TCGA-AG-4015",
+  "TCGA-EF-5830",
+  "TCGA-AA-3867",
+  "TCGA-SS-A7HO"
+ ]
+}
