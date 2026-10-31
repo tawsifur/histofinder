@@ -1,0 +1,954 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Histofinder</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: calm clinical reading room. Cool mist paper, a single teal for actions and good outcomes,
+   eosin rose kept for the one thing that needs attention (a flag). Pages follow what each visitor came to do. */
+:root {
+  --paper: #f4f7f7;
+  --surface: #ffffff;
+  --sunk: #eaf0f0;
+  --ink: #1e2b30;
+  --muted: #5a6b70;
+  --line: #dbe4e4;
+  --primary: #1f7a78;
+  --primary-soft: #dff0ee;
+  --on-primary: #ffffff;
+  --rose: #bf5b78;
+  --rose-soft: #f8e7ec;
+  --hema: #5b5fa8;
+  --hema-soft: #e7e8f6;
+  --band: #e3efee;
+  --chart-grid: #e4ebeb;
+  --font-display: "Source Serif 4", "Iowan Old Style", Georgia, serif;
+  --font-body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --step--1: 0.8125rem; --step-0: 1.0625rem; --step-1: 1.25rem; --step-2: 1.55rem; --step-3: clamp(1.8rem, 3.3vw, 2.3rem); --step-4: clamp(2.3rem, 5vw, 3.5rem);
+  --radius: 14px;
+  --maxw: 1140px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0f1617; --surface: #152022; --sunk: #121b1d; --ink: #e3eeee; --muted: #9fb2b4; --line: #243234;
+    --primary: #5cc2bb; --primary-soft: #15302f; --on-primary: #0d1a1a; --rose: #e88aa3; --rose-soft: #3a2129; --hema: #9ea2ec; --hema-soft: #22243f;
+    --band: #142624; --chart-grid: #1f2b2d; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0f1617; --surface: #152022; --sunk: #121b1d; --ink: #e3eeee; --muted: #9fb2b4; --line: #243234;
+  --primary: #5cc2bb; --primary-soft: #15302f; --on-primary: #0d1a1a; --rose: #e88aa3; --rose-soft: #3a2129; --hema: #9ea2ec; --hema-soft: #22243f;
+  --band: #142624; --chart-grid: #1f2b2d; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: var(--step-0); line-height: 1.65; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--surface); }
+a { color: var(--primary); text-underline-offset: 3px; }
+:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: 6px; }
+.wrap { max-width: var(--maxw); margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+h1, h2 { font-family: var(--font-display); font-weight: 500; line-height: 1.12; text-wrap: balance; margin: 0; letter-spacing: -0.01em; }
+h1 { font-size: var(--step-4); }
+h2 { font-size: var(--step-3); }
+h3 { font-size: var(--step-1); font-weight: 600; line-height: 1.3; margin: 0; }
+p, ul, ol { margin: 0; }
+.lede { font-size: var(--step-1); color: var(--muted); max-width: 58ch; line-height: 1.6; }
+.eyebrow { font: 500 var(--step--1) var(--font-mono); letter-spacing: 0.07em; text-transform: uppercase; color: var(--primary); }
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted); }
+.small { font-size: var(--step--1); }
+.stack { display: flex; flex-direction: column; gap: 18px; }
+.row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 11px 20px; border-radius: 999px; font: 600 0.95rem var(--font-body); text-decoration: none; border: 1px solid transparent; cursor: pointer; background: none; color: inherit; }
+.btn.primary { background: var(--primary); color: var(--on-primary); }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn.ghost { border-color: var(--line); background: var(--surface); color: var(--ink); }
+.btn.ghost:hover { border-color: var(--primary); }
+.btn.sm { padding: 6px 14px; font-size: 0.86rem; }
+section.page { padding-block: 36px 80px; }
+.sec { padding-block: 72px 0; }
+.sec-head { display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; max-width: 720px; }
+
+/* header */
+header.site { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--surface); border-bottom: 1px solid var(--line); }
+header.site .wrap { display: flex; align-items: center; gap: 20px; padding-block: 12px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); font-family: var(--font-brand, var(--font-display)); font-size: 1.4rem; font-weight: 600; letter-spacing: -0.01em; }
+.brand .wordmark b { color: var(--primary); font-weight: 700; }
+nav.tabs { display: flex; gap: 4px; flex-wrap: wrap; margin-left: auto; align-items: center; }
+nav.tabs a { text-decoration: none; color: var(--muted); font-weight: 500; font-size: 0.95rem; padding: 7px 13px; border-radius: 999px; }
+nav.tabs a:hover { color: var(--ink); background: var(--sunk); }
+nav.tabs a[aria-current="page"] { color: var(--primary); background: var(--primary-soft); }
+nav.tabs a.cta { background: var(--primary); color: var(--on-primary); margin-left: 6px; }
+
+/* hero */
+.hero { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.15fr); gap: 56px; align-items: center; padding-block: 32px 8px; }
+.hero > * { min-width: 0; }
+@media (max-width: 900px) { .hero { grid-template-columns: 1fr; gap: 32px; } }
+.trust { display: flex; flex-wrap: wrap; gap: 8px 18px; }
+.trust span { font-size: var(--step--1); color: var(--muted); display: inline-flex; gap: 7px; align-items: center; }
+.trust span::before { content: ""; width: 14px; height: 14px; border-radius: 50%; background: var(--primary-soft) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpath d='M4 7.2l2 2 4-4.4' stroke='%231f7a78' stroke-width='1.6' fill='none'/%3E%3C/svg%3E") center/14px no-repeat; }
+
+/* slide panel */
+.slidepanel { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 14px; box-shadow: 0 24px 60px -36px rgba(20, 60, 60, .45); display: flex; flex-direction: column; gap: 12px; }
+.seg { display: inline-flex; background: var(--sunk); border-radius: 999px; padding: 3px; gap: 2px; }
+.seg button { border: none; background: none; font: 600 0.85rem var(--font-body); color: var(--muted); padding: 6px 14px; border-radius: 999px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+.viewer { position: relative; border-radius: 10px; overflow: hidden; background: #f3eef2; aspect-ratio: 900 / 560; max-width: 100%; }
+.viewer canvas, .viewer img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; display: block; background: #f3eef2; }
+.viewer .over { clip-path: inset(0 0 0 var(--split, 50%)); }
+.viewer .divider { position: absolute; top: 0; bottom: 0; left: var(--split, 50%); width: 2px; background: #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.12); pointer-events: none; }
+.viewer .knob { position: absolute; top: 50%; left: var(--split, 50%); width: 34px; height: 34px; margin: -17px 0 0 -17px; border-radius: 50%; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,.2); display: grid; place-items: center; pointer-events: none; color: #1f7a78; font: 600 13px var(--font-mono); }
+.viewer input[type=range] { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: ew-resize; margin: 0; }
+.viewer[data-mode="original"] .over, .viewer[data-mode="original"] .divider, .viewer[data-mode="original"] .knob, .viewer[data-mode="original"] input { display: none; }
+.viewer[data-mode="heat"] .over { clip-path: none; }
+.viewer[data-mode="heat"] .divider, .viewer[data-mode="heat"] .knob, .viewer[data-mode="heat"] input { display: none; }
+.panelbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.legend { display: flex; align-items: center; gap: 8px; font-size: var(--step--1); color: var(--muted); }
+.legend .ramp { width: 96px; height: 7px; border-radius: 4px; background: linear-gradient(90deg, #2c115f, #721f81, #b73779, #f1605d, #feb078, #fcfdbf); }
+.resultline { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 10px 12px; background: var(--sunk); border-radius: 10px; }
+.meter { height: 7px; border-radius: 4px; background: var(--line); overflow: hidden; }
+.meter > i { display: block; height: 100%; background: var(--primary); }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font: 500 12px var(--font-mono); white-space: nowrap; }
+.chip.flag { background: var(--rose-soft); color: var(--rose); }
+.chip.none { background: var(--sunk); color: var(--muted); }
+.chip.msi { background: var(--rose); color: #fff; }
+.chip.mss { background: var(--line); color: var(--ink); }
+.chip.ok { background: var(--primary-soft); color: var(--primary); }
+
+/* soft band */
+.band { background: var(--band); margin-top: 72px; }
+.band .wrap { padding-block: 44px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 28px; }
+.band .num { font-family: var(--font-display); font-size: clamp(2.2rem, 4vw, 3rem); line-height: 1; font-variant-numeric: tabular-nums; color: var(--ink); }
+.band p { color: var(--muted); font-size: 0.95rem; margin-top: 10px; }
+.band a { font-size: var(--step--1); color: var(--primary); }
+@media (max-width: 900px) { .band .wrap { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .band .wrap { grid-template-columns: 1fr; } }
+
+/* gallery */
+.gallery { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 960px) { .gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .gallery { grid-template-columns: 1fr; } }
+.gcard { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; }
+.gcard .pic { position: relative; aspect-ratio: 4 / 3; background: #f3eef2; }
+.gcard .pic img, .gcard .pic canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.gcard .pic .heat { opacity: 0; transition: opacity .25s ease; }
+.gcard.show-heat .pic .heat { opacity: 1; }
+.gcard .meta { padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+.gcard .meta .top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.gcard button.flip { align-self: flex-start; }
+.chip.role-caught { background: var(--primary-soft); color: var(--primary); }
+.chip.role-cleared { background: var(--sunk); color: var(--ink); }
+.chip.role-false_alarm { background: #fbefe2; color: #9a5a17; }
+.noimg { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 24px; color: var(--muted); font-size: .9rem; background: var(--sunk); }
+.cohort-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.tiles-strip { width: 100%; border-radius: 10px; border: 1px solid var(--line); display: block; }
+.note-ip { font-size: .72rem; font-weight: 600; color: var(--rose); margin-left: 4px; }
+
+/* reasons */
+.reasons { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--line); }
+.reasons > div { padding: 22px 22px 22px 0; display: flex; flex-direction: column; gap: 8px; }
+.reasons > div + div { padding-left: 22px; border-left: 1px solid var(--line); }
+.reasons .who { font: 500 var(--step--1) var(--font-mono); color: var(--primary); text-transform: uppercase; letter-spacing: .06em; }
+@media (max-width: 820px) { .reasons { grid-template-columns: 1fr; } .reasons > div + div { padding-left: 0; border-left: none; border-top: 1px solid var(--line); } }
+
+/* two paths */
+.paths { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; }
+@media (max-width: 820px) { .paths { grid-template-columns: 1fr; } }
+.path { border-radius: var(--radius); padding: 22px 22px 6px; background: var(--surface); border: 1px solid var(--line); }
+.path.with { border-color: var(--primary); box-shadow: inset 0 3px 0 var(--primary); }
+.path h3 { margin-bottom: 14px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.path ol { list-style: none; padding: 0; }
+.path li { position: relative; padding: 0 0 16px 28px; }
+.path li::before { content: ""; position: absolute; left: 5px; top: 8px; width: 10px; height: 10px; border-radius: 50%; background: var(--line); border: 2px solid var(--muted); }
+.path li::after { content: ""; position: absolute; left: 10px; top: 22px; bottom: 2px; width: 1px; background: var(--line); }
+.path li:last-child::after { display: none; }
+.path.with li::before { border-color: var(--primary); background: var(--primary-soft); }
+.path li.flag::before { border-color: var(--rose); background: var(--rose-soft); }
+.path li.bad b { color: var(--muted); }
+.path li span { display: block; font-size: 0.93rem; color: var(--muted); }
+
+/* steps */
+.steps { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; }
+.steps > div { display: flex; flex-direction: column; gap: 6px; padding: 16px; background: var(--surface); border-radius: 12px; border: 1px solid var(--line); }
+.steps .n { font: 500 var(--step--1) var(--font-mono); color: var(--primary); }
+.steps p { font-size: 0.93rem; color: var(--muted); }
+@media (max-width: 960px) { .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .steps { grid-template-columns: 1fr; } }
+
+/* calculator */
+.calc { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; background: var(--surface); }
+.calc > * { min-width: 0; }
+@media (max-width: 860px) { .calc { grid-template-columns: 1fr; } }
+.calc .inputs { padding: 24px; display: flex; flex-direction: column; gap: 18px; background: var(--sunk); }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label { font-weight: 600; font-size: 0.93rem; display: flex; justify-content: space-between; gap: 10px; }
+.field label output { font-family: var(--font-mono); color: var(--primary); }
+.field input[type=range] { width: 100%; accent-color: var(--primary); }
+.field .hint { font-size: var(--step--1); color: var(--muted); }
+.calc .outputs { padding: 24px; display: flex; flex-direction: column; gap: 14px; }
+.funnel .f { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; align-items: center; margin-bottom: 10px; }
+.funnel .f .val { font: 500 1.15rem var(--font-mono); }
+.funnel .f .track { grid-column: 1 / -1; height: 10px; border-radius: 5px; background: var(--sunk); overflow: hidden; }
+.funnel .f .track i { display: block; height: 100%; border-radius: 5px; }
+
+/* families & clinicians */
+.two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 44px; align-items: start; }
+.two > * { min-width: 0; }
+@media (max-width: 860px) { .two { grid-template-columns: 1fr; } }
+.facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.facts > div { padding: 20px; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--line); display: flex; flex-direction: column; gap: 6px; }
+.facts .big { font-family: var(--font-display); font-size: 2.2rem; line-height: 1; color: var(--primary); }
+@media (max-width: 760px) { .facts { grid-template-columns: 1fr; } }
+.figbox { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); padding: 16px; overflow-x: auto; margin: 0; }
+.figbox svg { width: 100%; height: auto; display: block; }
+.figbox text { font-family: var(--font-body); font-size: 12px; fill: var(--ink); }
+.figbox .sub { font-size: 11px; fill: var(--muted); }
+.figbox .edge { stroke: var(--muted); fill: none; stroke-width: 1.25; }
+.figbox .elab { font: 500 11px var(--font-mono); fill: var(--muted); }
+.numlist { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 14px; counter-reset: n; }
+.numlist li { counter-increment: n; display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 12px; }
+.numlist li::before { content: counter(n); width: 30px; height: 30px; border-radius: 50%; background: var(--primary-soft); color: var(--primary); display: grid; place-items: center; font: 600 0.9rem var(--font-mono); }
+.ask { background: var(--primary-soft); border-radius: var(--radius); padding: 22px; display: flex; flex-direction: column; gap: 12px; }
+.ask ul { padding-left: 20px; display: flex; flex-direction: column; gap: 8px; }
+.callout { border-left: 3px solid var(--primary); background: var(--primary-soft); padding: 16px 18px; border-radius: 0 var(--radius) var(--radius) 0; }
+.cmp { width: 100%; border-collapse: collapse; font-size: 0.95rem; min-width: 540px; }
+.cmp th, .cmp td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.cmp thead th { font: 500 var(--step--1) var(--font-mono); text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.cmp td.us { background: var(--primary-soft); }
+.scroll-x { overflow-x: auto; }
+.road { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.road > div { padding: 20px; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--line); display: flex; flex-direction: column; gap: 8px; }
+.road .when { font: 500 var(--step--1) var(--font-mono); color: var(--muted); }
+.road .now { border-color: var(--primary); box-shadow: inset 0 3px 0 var(--primary); }
+@media (max-width: 760px) { .road { grid-template-columns: 1fr; } }
+details.faq { border-bottom: 1px solid var(--line); padding: 14px 0; }
+details.faq summary { cursor: pointer; font-weight: 600; list-style: none; display: flex; justify-content: space-between; gap: 12px; }
+details.faq summary::after { content: "+"; font-family: var(--font-mono); color: var(--primary); }
+details.faq[open] summary::after { content: "–"; }
+details.faq p { margin-top: 8px; color: var(--muted); max-width: 72ch; }
+
+/* demo */
+.banner { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 10px 14px; border-radius: 10px; background: var(--hema-soft); font-size: 0.93rem; }
+.banner.real { background: var(--primary-soft); }
+.toolbar { display: flex; gap: 14px 24px; flex-wrap: wrap; align-items: center; padding: 12px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.toolbar .field { flex: 1 1 240px; }
+.switch { display: inline-flex; align-items: center; gap: 8px; font-size: 0.93rem; cursor: pointer; }
+.demo-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.12fr); gap: 22px; align-items: start; }
+.demo-grid > * { min-width: 0; }
+@media (max-width: 920px) { .demo-grid { grid-template-columns: 1fr; } }
+.worklist { max-height: 620px; overflow: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+table.work { width: 100%; border-collapse: collapse; font-size: 0.93rem; }
+table.work th { text-align: left; font: 500 11.5px var(--font-mono); text-transform: uppercase; letter-spacing: .05em; color: var(--muted); padding: 10px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--surface); z-index: 1; }
+table.work td { padding: 9px 10px; border-bottom: 1px solid var(--line); }
+table.work tbody tr { cursor: pointer; }
+table.work tbody tr:hover { background: var(--sunk); }
+table.work tbody tr[aria-selected="true"] { background: var(--primary-soft); }
+table.work tr.cut td { border-bottom: 2px dashed var(--rose); }
+.bar { height: 6px; border-radius: 3px; background: var(--sunk); width: 64px; overflow: hidden; }
+.bar > i { display: block; height: 100%; background: var(--primary); }
+.report { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+.report .kv { display: grid; grid-template-columns: auto 1fr; gap: 4px 16px; font-size: 0.93rem; margin: 0; }
+.report .kv dt { color: var(--muted); }
+.report .kv dd { margin: 0; font-family: var(--font-mono); }
+.report .next { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.report .next div { background: var(--sunk); border-radius: 8px; padding: 10px; font-size: var(--step--1); }
+.report .next b { display: block; font-size: 0.86rem; }
+@media (max-width: 520px) { .report .next { grid-template-columns: 1fr; } }
+.panels { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; }
+@media (max-width: 820px) { .panels { grid-template-columns: 1fr; } }
+.drop { border: 1.5px dashed var(--line); border-radius: var(--radius); padding: 22px; display: flex; flex-direction: column; gap: 10px; background: var(--surface); }
+.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.kpi { padding: 18px; display: flex; flex-direction: column; gap: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
+.kpi .v { font-family: var(--font-display); font-size: 2.1rem; line-height: 1.05; font-variant-numeric: tabular-nums; color: var(--primary); }
+.kpi .l { font-size: var(--step--1); color: var(--muted); }
+@media (max-width: 820px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.chart { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.chart svg { width: 100%; height: auto; display: block; }
+.charts2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; }
+@media (max-width: 820px) { .charts2 { grid-template-columns: 1fr; } }
+table.op { width: 100%; border-collapse: collapse; font-size: 0.93rem; min-width: 560px; }
+table.op th, table.op td { padding: 10px 12px; border-bottom: 1px solid var(--line); text-align: right; font-variant-numeric: tabular-nums; }
+table.op th:first-child, table.op td:first-child { text-align: left; }
+table.op thead th { font: 500 11.5px var(--font-mono); text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+svg text { fill: var(--muted); font-family: var(--font-mono); font-size: 11px; }
+svg .t-ink { fill: var(--ink); }
+svg .grid { stroke: var(--chart-grid); }
+svg .axis { stroke: var(--muted); }
+.subnav { display: flex; gap: 8px; flex-wrap: wrap; }
+.subnav a { font-size: 0.9rem; text-decoration: none; padding: 5px 12px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); color: var(--ink); }
+.cta-block { display: grid; grid-template-columns: minmax(0, 1.4fr) auto; gap: 24px; align-items: center; padding: 28px; border-radius: var(--radius); background: var(--primary-soft); }
+@media (max-width: 760px) { .cta-block { grid-template-columns: 1fr; } }
+footer.site { border-top: 1px solid var(--line); padding-block: 28px; font-size: var(--step--1); color: var(--muted); margin-top: 40px; background: var(--surface); }
+footer.site .wrap { display: flex; gap: 16px; justify-content: space-between; flex-wrap: wrap; }
+@media (prefers-reduced-motion: no-preference) { section.page { animation: fade .3s ease-out both; } @keyframes fade { from { transform: translateY(4px); } to { transform: none; } } }
+</style>
+
+<header class="site">
+  <div class="wrap">
+    <a class="brand" href="#home" aria-label="Histofinder home">
+      <svg class="logo" width="30" height="30" viewBox="0 0 32 32" aria-hidden="true">
+        <circle cx="13.5" cy="13.5" r="10.5" fill="var(--primary-soft)" stroke="var(--primary)" stroke-width="2.2"/>
+        <g fill="var(--primary)"><circle cx="13.5" cy="7.6" r="1.45"/><circle cx="18.6" cy="10.5" r="1.45"/><circle cx="18.6" cy="16.5" r="1.45"/><circle cx="13.5" cy="19.4" r="1.45"/><circle cx="8.4" cy="16.5" r="1.45"/><circle cx="8.4" cy="10.5" r="1.45"/></g>
+        <circle cx="13.5" cy="13.5" r="2.6" fill="var(--rose)"/>
+        <path d="M21.4 21.4 L28.5 28.5" stroke="var(--primary)" stroke-width="3.4" stroke-linecap="round"/>
+      </svg>
+      <span class="wordmark">Histo<b>finder</b></span>
+    </a>
+    <nav class="tabs" aria-label="Pages">
+      <a href="#home">Home</a>
+      <a href="#patients">For patients</a>
+      <a href="#clinicians">For clinicians</a>
+      <a href="#demo">Demo</a>
+      <a href="#about">About</a>
+      <a href="#about" class="cta">Request a pilot</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+<!-- ================================= HOME ================================= -->
+<section class="page" data-page="home" style="padding-bottom:0">
+  <div class="wrap">
+    <div class="hero">
+      <div class="stack" style="gap:22px">
+        <span class="eyebrow">AI pre-screening · colorectal &amp; stomach cancer · MSI</span>
+        <h1>Find the patients whose tumours were never tested.</h1>
+        <p class="lede">Many people with colorectal or stomach cancer never get the MSI test that decides whether immunotherapy could work. Their slide is already in the lab. Histofinder reads it and flags who should be tested next.</p>
+        <div class="row">
+          <a class="btn primary" href="#demo">Open the demo</a>
+          <a class="btn ghost" href="#patients">I'm a patient or family member</a>
+        </div>
+        <div class="trust">
+          <span>Uses the slide the lab already made</span>
+          <span>A standard test confirms every flag</span>
+          <span>Research use only</span>
+        </div>
+        <p class="small muted" style="margin:0">Live: <b style="color:var(--ink)">colorectal</b> and <b style="color:var(--ink)">stomach</b> cancer. Coming next: endometrial, pancreatic and prostate cancer.</p>
+      </div>
+      <div class="slidepanel">
+        <div class="panelbar">
+          <div class="seg" role="group" aria-label="Slide view">
+            <button type="button" data-mode="original" aria-pressed="false">Original slide</button>
+            <button type="button" data-mode="heat" aria-pressed="false">AI attention</button>
+            <button type="button" data-mode="compare" aria-pressed="true">Compare</button>
+          </div>
+          <span class="legend">low <span class="ramp"></span> high</span>
+        </div>
+        <div class="viewer" id="hero-viewer" data-mode="compare" style="--split:52%">
+          <div id="hero-layers"></div>
+          <div class="divider"></div><div class="knob" aria-hidden="true">⇆</div>
+          <input type="range" id="hero-range" min="0" max="100" value="52" aria-label="Drag to compare the original slide with the AI attention map">
+        </div>
+        <div class="resultline">
+          <span class="mono small" id="hero-id">Example slide</span>
+          <div class="row" style="gap:10px;flex-wrap:nowrap"><span class="mono" id="hero-score">92</span><div class="meter" style="flex:1"><i id="hero-meter" style="width:92%"></i></div></div>
+          <span class="chip flag">Order MSI test</span>
+        </div>
+        <p class="small muted" id="hero-note">Illustrative tissue drawn by code. Real TCGA slides appear here once results are published.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="band">
+    <div class="wrap">
+      <div><div class="num">56%</div><p>of people with metastatic colorectal cancer in a 41,061-patient US study had no MSI test on record.</p><a href="https://myadlm.org/cln/Articles/2025/JanuaryFebruary/Patients-missed-for-cancer-biomarker-testing-risk-worse-outcomes" target="_blank" rel="noopener">ADLM, 2025 ↗</a></div>
+      <div><div class="num">62% vs 0%</div><p>responded to immunotherapy in an early study when tumours were MSI-high vs when they were not.</p><a href="https://www.curetoday.com/view/biomarkers-lynch-syndrome-and-immunotherapy-in-colorectal-cancer" target="_blank" rel="noopener">CURE ↗</a></div>
+      <div><div class="num">1 in 280</div><p>people carry Lynch syndrome, an inherited cancer risk. Up to 90% don't know it.</p><a href="https://moffitt.org/endeavor/archive/lynch-syndrome-a-common-and-underdiagnosed-genetic-risk-for-colorectal-cancer/" target="_blank" rel="noopener">Moffitt ↗</a></div>
+      <div><div class="num">50%</div><p>chance that each sibling or child of a carrier shares the same gene change.</p><a href="https://www.cioncancerclinics.com/targeted-therapy/cascade-genetic-testing-family/" target="_blank" rel="noopener">CION ↗</a></div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Original slide and AI view</span>
+        <h2>What the model sees on whole slides</h2>
+        <p class="lede">Real colorectal and stomach cancer slides from patients the model never saw in training. Switch to the AI view to see which regions the model weighted most when scoring the slide. A pathologist can open the slide and check those regions.</p>
+      </div>
+      <div class="gallery" id="gallery"></div>
+      <p class="small muted" id="gallery-note" style="margin-top:12px"></p>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Why it matters</span>
+        <h2>One missed test affects three groups of people</h2>
+      </div>
+      <div class="reasons">
+        <div><span class="who">The patient</span><h3>A treatment that might work much better</h3><p class="muted">MSI-high tumours are covered in DNA errors, so the immune system can recognise them. Immunotherapy helps it do that. Without the test, it is never considered.</p></div>
+        <div><span class="who">The family</span><h3>A chance to prevent cancer, not just treat it</h3><p class="muted">Some MSI-high cancers come from Lynch syndrome. Relatives who learn they carry it can start colonoscopy early and have polyps removed before they turn into cancer.</p></div>
+        <div><span class="who">Research</span><h3>Trials that can find their patients</h3><p class="muted">Trials of new drugs for MSI-high cancer need these patients. Untested patients are invisible to them.</p></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Same tumour, two outcomes</span>
+        <h2>The difference is whether anyone looks again</h2>
+      </div>
+      <div class="paths">
+        <div class="path">
+          <h3><span class="chip none">Today</span> The test slips through</h3>
+          <ol>
+            <li><b>Diagnosis and surgery</b><span>An H&amp;E slide is made, as for every patient.</span></li>
+            <li class="bad"><b>MSI test never ordered</b><span>The order is missed, the biopsy runs out, or the clinic is stretched.</span></li>
+            <li class="bad"><b>Standard chemotherapy only</b><span>Immunotherapy is never considered.</span></li>
+            <li class="bad"><b>Family never told</b><span>Relatives keep a hidden, preventable risk.</span></li>
+          </ol>
+        </div>
+        <div class="path with">
+          <h3><span class="chip ok">With Histofinder</span> The slide speaks up</h3>
+          <ol>
+            <li><b>Diagnosis and surgery</b><span>The same slide is scanned.</span></li>
+            <li class="flag"><b>Flagged for testing</b><span>Histofinder adds the patient to the lab's worklist.</span></li>
+            <li><b>Confirmed by IHC or PCR</b><span>A standard test makes the call, not the AI.</span></li>
+            <li><b>Immunotherapy considered</b><span>The oncologist can weigh a drug matched to the tumour.</span></li>
+            <li><b>Family protected</b><span>If it is Lynch syndrome, relatives are offered testing and early screening.</span></li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head"><span class="eyebrow">How it works</span><h2>Five steps, no new sample</h2></div>
+      <div class="steps">
+        <div><span class="n">01</span><h3>Scan</h3><p>The lab digitises the H&amp;E slide it already made.</p></div>
+        <div><span class="n">02</span><h3>Tile</h3><p>Tissue is cut into thousands of small tiles at 0.5 µm per pixel.</p></div>
+        <div><span class="n">03</span><h3>Read</h3><p>A pathology foundation model describes each tile.</p></div>
+        <div><span class="n">04</span><h3>Weigh</h3><p>Attention learning finds the regions that signal MSI.</p></div>
+        <div><span class="n">05</span><h3>Flag</h3><p>Untested patients are ranked; the top ones go to testing.</p></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="eyebrow">Impact estimator</span>
+        <h2>What would it find at your hospital?</h2>
+        <p class="lede">Set your numbers. Defaults come from published figures; the model's hit rate comes from the Demo page.</p>
+      </div>
+      <div class="calc">
+        <div class="inputs">
+          <div class="field"><label for="c-cases">New colorectal cancers per year <output id="o-cases"></output></label><input type="range" id="c-cases" min="50" max="2000" step="10" value="400"></div>
+          <div class="field"><label for="c-tested">Share already tested for MSI <output id="o-tested"></output></label><input type="range" id="c-tested" min="20" max="100" step="1" value="44"><span class="hint">Published US average for metastatic disease: 44%.</span></div>
+          <div class="field"><label for="c-msi">MSI-high rate <output id="o-msi"></output></label><input type="range" id="c-msi" min="5" max="25" step="1" value="15"></div>
+          <div class="field"><label for="c-flag">Share of untested patients sent to testing <output id="o-flag"></output></label><input type="range" id="c-flag" min="5" max="60" step="1" value="20"></div>
+        </div>
+        <div class="outputs"><div class="funnel" id="funnel"></div><p class="small muted" id="calc-note"></p></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="cta-block">
+        <div class="stack" style="gap:8px"><h2 style="font-size:var(--step-2)">Run Histofinder on your own slides</h2><p class="muted">We are looking for pathology labs and cancer centres for a first research pilot on de-identified slides.</p></div>
+        <a class="btn primary" href="#about">Request a pilot</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================= PATIENTS ================================= -->
+<section class="page" data-page="patients" hidden>
+  <div class="wrap">
+    <div class="sec-head" style="max-width:780px">
+      <span class="eyebrow">For patients &amp; families</span>
+      <h1>Ask if your tumour was tested. If it was MSI-high, tell your family.</h1>
+      <p class="lede">An MSI or MMR test on a colorectal or stomach tumour can change your treatment. Sometimes it also reveals Lynch syndrome, an inherited condition your relatives can act on before cancer starts.</p>
+      <div class="subnav"><a href="#patients" data-jump="p-who">Who should be tested</a><a href="#patients" data-jump="p-how">How family testing works</a><a href="#patients" data-jump="p-ask">Questions to ask</a></div>
+    </div>
+    <div class="facts">
+      <div><span class="big">1 in 280</span><p class="muted">people have Lynch syndrome. Up to 90% don't know they have it.</p></div>
+      <div><span class="big">~50%</span><p class="muted">chance that each brother, sister or child of a carrier has the same gene change.</p></div>
+      <div><span class="big">Every 1–2 years</span><p class="muted">colonoscopy from age 25 is recommended for relatives who test positive.</p></div>
+    </div>
+
+    <div class="sec two" id="p-who">
+      <div class="stack">
+        <span class="eyebrow">Who should be tested</span>
+        <h2>One result can protect a whole family</h2>
+        <p>Lynch syndrome is passed down in families. When one person is found to carry it, close relatives can take a simple blood or saliva test for the same gene change. This is called <b>cascade testing</b>.</p>
+        <p>Relatives who test negative go back to average risk. Relatives who test positive can start colonoscopy early, when polyps can be removed before they become cancer.</p>
+        <p class="small muted">On average a person has about four first-degree relatives (parents, siblings, children), and about half are likely to share the family's gene change (<a href="https://doh.wa.gov/sites/default/files/legacy/Documents/Pubs/344-069-LSCascadeScreening.PDF" target="_blank" rel="noopener">Washington State DOH</a>).</p>
+      </div>
+      <figure class="figbox">
+        <svg viewBox="0 0 600 380" role="img" aria-label="Family tree showing which relatives should be offered testing" style="min-width:540px">
+          <defs><marker id="ped-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--rose)"/></marker></defs>
+          <rect x="18" y="20" width="14" height="14" rx="2" fill="var(--rose)"/><text x="40" y="32" class="sub">has cancer</text>
+          <rect x="18" y="44" width="14" height="14" rx="2" fill="var(--primary-soft)" stroke="var(--primary)" stroke-width="2"/><text x="40" y="56" class="sub">offer testing</text>
+          <text x="18" y="80" class="sub">□ male  ○ female  ↗ patient</text>
+          <line x1="250" y1="70" x2="350" y2="70" stroke="var(--muted)"/><line x1="300" y1="70" x2="300" y2="130" stroke="var(--muted)"/><line x1="150" y1="130" x2="450" y2="130" stroke="var(--muted)"/>
+          <rect x="226" y="46" width="48" height="48" rx="2" fill="var(--surface)" stroke="var(--hema)" stroke-width="2"/><circle cx="374" cy="70" r="24" fill="var(--surface)" stroke="var(--hema)" stroke-width="2"/>
+          <text x="250" y="112" text-anchor="middle" class="sub">Father</text><text x="374" y="112" text-anchor="middle" class="sub">Mother</text>
+          <text x="412" y="62" class="sub">One parent usually</text><text x="412" y="77" class="sub">carries it</text>
+          <line x1="150" y1="130" x2="150" y2="160" stroke="var(--muted)"/><line x1="300" y1="130" x2="300" y2="160" stroke="var(--muted)"/><line x1="450" y1="130" x2="450" y2="160" stroke="var(--muted)"/>
+          <circle cx="150" cy="184" r="24" fill="var(--primary-soft)" stroke="var(--primary)" stroke-width="2.5"/>
+          <rect x="276" y="160" width="48" height="48" rx="2" fill="var(--rose)" stroke="var(--rose)" stroke-width="2"/>
+          <rect x="426" y="160" width="48" height="48" rx="2" fill="var(--primary-soft)" stroke="var(--primary)" stroke-width="2.5"/>
+          <line x1="232" y1="236" x2="268" y2="210" stroke="var(--rose)" stroke-width="2" marker-end="url(#ped-arrow)"/>
+          <text x="150" y="226" text-anchor="middle">Sister</text><text x="150" y="241" text-anchor="middle" class="sub">50% chance</text>
+          <text x="300" y="226" text-anchor="middle" style="font-weight:600">Patient</text><text x="300" y="241" text-anchor="middle" class="sub">MSI-high, Lynch</text>
+          <text x="450" y="226" text-anchor="middle">Brother</text><text x="450" y="241" text-anchor="middle" class="sub">50% chance</text>
+          <line x1="300" y1="252" x2="300" y2="280" stroke="var(--muted)"/><line x1="240" y1="280" x2="360" y2="280" stroke="var(--muted)"/><line x1="240" y1="280" x2="240" y2="300" stroke="var(--muted)"/><line x1="360" y1="280" x2="360" y2="300" stroke="var(--muted)"/>
+          <rect x="216" y="300" width="48" height="48" rx="2" fill="var(--primary-soft)" stroke="var(--primary)" stroke-width="2.5"/><circle cx="360" cy="324" r="24" fill="var(--primary-soft)" stroke="var(--primary)" stroke-width="2.5"/>
+          <text x="204" y="320" text-anchor="end">Son</text><text x="204" y="335" text-anchor="end" class="sub">50% chance</text>
+          <text x="396" y="320">Daughter</text><text x="396" y="335" class="sub">50% chance</text>
+        </svg>
+        <figcaption class="small muted" style="margin-top:8px">Standard family-tree notation. Relatives in teal should be offered a test for the family's gene change.</figcaption>
+      </figure>
+    </div>
+
+    <div class="sec two" id="p-how">
+      <div class="stack">
+        <span class="eyebrow">How family testing works</span>
+        <h2>From one result to a protected family</h2>
+        <ol class="numlist">
+          <li><div><b>Get the patient's genetic report</b><p class="muted">It names the gene and the exact change, and confirms it causes disease.</p></div></li>
+          <li><div><b>See a genetic counsellor</b><p class="muted">They review family history and explain what each result would mean.</p></div></li>
+          <li><div><b>Relatives give a blood or saliva sample</b><p class="muted">The lab looks only for the family's known change, which is quicker and cheaper.</p></div></li>
+          <li><div><b>Act on the result</b><p class="muted">Negative: normal screening. Positive: colonoscopy every 1–2 years from age 25, plus screening for other Lynch cancers.</p></div></li>
+          <li><div><b>Pass it on</b><p class="muted">Each relative who tests positive tells their own children and siblings.</p></div></li>
+        </ol>
+      </div>
+      <div class="ask" id="p-ask">
+        <span class="eyebrow">Questions to ask your care team</span>
+        <h3>Bring these to your next appointment</h3>
+        <ul id="questions">
+          <li>Was my tumour tested for MSI or mismatch repair (MMR)?</li>
+          <li>If not, can it be tested on the tissue you already have?</li>
+          <li>If it is MSI-high or MMR-deficient, could immunotherapy be an option for me?</li>
+          <li>Should I have genetic counselling or testing for Lynch syndrome?</li>
+          <li>Which of my relatives should be tested, and how do I tell them?</li>
+        </ul>
+        <div class="row"><button class="btn ghost sm" id="copy-questions" type="button">Copy the questions</button></div>
+      </div>
+    </div>
+    <p class="small muted" style="margin-top:44px">General information, not medical advice. Talk to your doctor or a genetic counsellor about your own situation. Sources: <a href="https://moffitt.org/endeavor/archive/lynch-syndrome-a-common-and-underdiagnosed-genetic-risk-for-colorectal-cancer/" target="_blank" rel="noopener">Moffitt Cancer Center</a>, <a href="https://doh.wa.gov/sites/default/files/legacy/Documents/Pubs/344-069-LSCascadeScreening.PDF" target="_blank" rel="noopener">Washington State DOH</a>, <a href="https://www.cioncancerclinics.com/targeted-therapy/cascade-genetic-testing-family/" target="_blank" rel="noopener">CION Cancer Clinics</a>, <a href="https://www.curetoday.com/view/biomarkers-lynch-syndrome-and-immunotherapy-in-colorectal-cancer" target="_blank" rel="noopener">CURE</a>.</p>
+  </div>
+</section>
+
+<!-- ================================= CLINICIANS ================================= -->
+<section class="page" data-page="clinicians" hidden>
+  <div class="wrap">
+    <div class="sec-head" style="max-width:780px">
+      <span class="eyebrow">For clinicians &amp; labs</span>
+      <h1>A background safety net for MMR/MSI testing</h1>
+      <p class="lede">Histofinder runs on slides your lab already scans and produces a ranked worklist of untested patients. It never replaces IHC or PCR. It makes sure the right patients reach them.</p>
+    </div>
+    <div class="stack">
+      <span class="eyebrow">What happens after a flag</span>
+      <figure class="figbox">
+        <svg viewBox="0 0 980 360" role="img" aria-label="Clinical pathway after a Histofinder flag" style="min-width:760px">
+          <defs><marker id="pw-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--muted)"/></marker></defs>
+          <rect x="12" y="150" width="150" height="60" rx="10" fill="var(--rose-soft)" stroke="var(--rose)" stroke-width="1.5"/><text x="87" y="176" text-anchor="middle" style="font-weight:600;font-size:13px">Histofinder flag</text><text x="87" y="194" text-anchor="middle" class="sub">untested, high priority</text>
+          <rect x="200" y="150" width="150" height="60" rx="10" fill="var(--surface)" stroke="var(--muted)"/><text x="275" y="176" text-anchor="middle" style="font-weight:600;font-size:13px">MMR IHC or MSI PCR</text><text x="275" y="194" text-anchor="middle" class="sub">standard confirmatory test</text>
+          <rect x="400" y="40" width="170" height="54" rx="10" fill="var(--sunk)" stroke="var(--line)"/><text x="485" y="64" text-anchor="middle" style="font-weight:600;font-size:13px">MMR-proficient / MSS</text><text x="485" y="81" text-anchor="middle" class="sub">standard care</text>
+          <rect x="400" y="250" width="170" height="60" rx="10" fill="var(--surface)" stroke="var(--rose)" stroke-width="1.5"/><text x="485" y="275" text-anchor="middle" style="font-weight:600;font-size:13px">MMR-deficient / MSI-high</text><text x="485" y="293" text-anchor="middle" class="sub">two actions follow</text>
+          <rect x="620" y="170" width="160" height="54" rx="10" fill="var(--primary-soft)" stroke="var(--primary)"/><text x="700" y="193" text-anchor="middle" style="font-weight:600;font-size:13px">Immunotherapy</text><text x="700" y="210" text-anchor="middle" class="sub">eligibility review</text>
+          <rect x="620" y="270" width="160" height="70" rx="10" fill="var(--surface)" stroke="var(--muted)"/><text x="700" y="292" text-anchor="middle" style="font-weight:600;font-size:13px">Sporadic or inherited?</text><text x="700" y="309" text-anchor="middle" class="sub">MLH1 loss: BRAF V600E or</text><text x="700" y="324" text-anchor="middle" class="sub">MLH1 methylation check</text>
+          <rect x="820" y="230" width="150" height="54" rx="10" fill="var(--sunk)" stroke="var(--line)"/><text x="895" y="253" text-anchor="middle" style="font-weight:600;font-size:13px">Likely sporadic</text><text x="895" y="270" text-anchor="middle" class="sub">BRAF or methylation found</text>
+          <rect x="820" y="300" width="150" height="54" rx="10" fill="var(--primary-soft)" stroke="var(--primary)"/><text x="895" y="323" text-anchor="middle" style="font-weight:600;font-size:13px">Germline testing</text><text x="895" y="340" text-anchor="middle" class="sub">Lynch → family cascade</text>
+          <path class="edge" d="M162 180H198" marker-end="url(#pw-arrow)"/><path class="edge" d="M350 170H375V67H398" marker-end="url(#pw-arrow)"/><path class="edge" d="M350 190H375V280H398" marker-end="url(#pw-arrow)"/>
+          <path class="edge" d="M570 270H595V197H618" marker-end="url(#pw-arrow)"/><path class="edge" d="M570 290H595V305H618" marker-end="url(#pw-arrow)"/>
+          <path class="edge" d="M780 295H800V257H818" marker-end="url(#pw-arrow)"/><path class="edge" d="M780 315H800V327H818" marker-end="url(#pw-arrow)"/>
+          <text x="382" y="120" class="elab">negative</text><text x="382" y="245" class="elab">positive</text>
+        </svg>
+      </figure>
+      <p class="small muted">An MMR-deficient tumour without BRAF V600E or MLH1 promoter methylation suggests a hereditary cause and warrants genetic counselling (<a href="https://www.curetoday.com/view/biomarkers-lynch-syndrome-and-immunotherapy-in-colorectal-cancer" target="_blank" rel="noopener">CURE</a>). Follow your institution's protocol.</p>
+    </div>
+    <div class="sec two">
+      <div class="stack">
+        <span class="eyebrow">Why rule-in is safer</span>
+        <h2>It can only add tests, never remove them</h2>
+        <div class="callout">Histofinder runs only on patients who were not going to be tested. When it flags someone, a standard test decides. When it misses someone, that patient is exactly where they would have been without it.</div>
+        <div class="scroll-x"><table class="cmp">
+          <thead><tr><th></th><th>Rule-out pre-screen (e.g. MSIntuit)</th><th>Histofinder</th></tr></thead>
+          <tbody>
+            <tr><th>Runs on</th><td>Patients already headed for testing</td><td class="us">Patients never tested</td></tr>
+            <tr><th>Goal</th><td>Skip tests for likely MSS cases</td><td class="us">Send likely MSI-high cases to testing</td></tr>
+            <tr><th>If the AI misses</th><td>A case could be cleared by mistake</td><td class="us">No worse than today</td></tr>
+          </tbody>
+        </table></div>
+        <p class="small muted">MSIntuit: <a href="https://www.nature.com/articles/s41467-023-42453-6" target="_blank" rel="noopener">Saillard et al., Nature Communications 2023</a>.</p>
+      </div>
+      <div class="stack">
+        <span class="eyebrow">What your team gets</span>
+        <h2>Fits the lab you already run</h2>
+        <ol class="numlist">
+          <li><div><b>Slides from your scanner</b><p class="muted">Standard whole-slide formats (.svs, .tiff, .ndpi).</p></div></li>
+          <li><div><b>A ranked worklist</b><p class="muted">Untested patients ordered by MSI priority, with a cut-off you choose.</p></div></li>
+          <li><div><b>Evidence for review</b><p class="muted">The original slide, the AI attention map and the highest-attention regions.</p></div></li>
+          <li><div><b>A test order, not a diagnosis</b><p class="muted">A short report recommending MMR IHC or MSI PCR.</p></div></li>
+        </ol>
+      </div>
+    </div>
+    <div class="sec stack">
+      <span class="eyebrow">Path to the clinic</span>
+      <div class="road">
+        <div class="now"><span class="when">Now</span><h3>Research use</h3><p class="muted">Retrospective screening of slide archives with partner labs. Labelled research use only.</p></div>
+        <div><span class="when">Next</span><h3>Lab-validated test</h3><p class="muted">A CLIA-certified partner lab validates and runs it as part of its own test.</p></div>
+        <div><span class="when">Later</span><h3>FDA clearance</h3><p class="muted">Multi-site validation supports clearance for use in any hospital.</p></div>
+      </div>
+      <p class="small muted">About 60% of academic centres and 50% of reference labs already use whole-slide imaging clinically (<a href="https://www.lek.com/insights/diagnostic-ancillary-provider-service/digital-pathology-demand-and-adoption-trends" target="_blank" rel="noopener">L.E.K., 2026</a>).</p>
+    </div>
+    <div class="sec">
+      <div class="sec-head"><span class="eyebrow">Questions clinicians ask</span><h2>FAQ</h2></div>
+      <details class="faq"><summary>Does Histofinder replace MMR immunohistochemistry or MSI PCR?</summary><p>No. It decides who should be tested among patients who were not. Every flag is confirmed with a standard test before any treatment or genetic decision.</p></details>
+      <details class="faq"><summary>Which specimens does it work on?</summary><p>The research models are trained on diagnostic (FFPE) H&amp;E slides of colorectal and stomach cancers from TCGA. Biopsies and other scanners need separate validation, which is part of the pilot plan.</p></details>
+      <details class="faq"><summary>How accurate is it?</summary><p>See the performance section of the Demo page. Those are held-out test-set numbers from one public dataset (TCGA colorectal and stomach); validation on your own slides is the first step of any pilot.</p></details>
+      <details class="faq"><summary>Does patient data leave the hospital?</summary><p>For a pilot, Histofinder can run inside your environment on de-identified slides under a data use agreement, set up with your IT and privacy teams.</p></details>
+      <details class="faq"><summary>Is it FDA cleared?</summary><p>No. It is a research prototype for research use only.</p></details>
+    </div>
+  </div>
+</section>
+
+<!-- ================================= DEMO ================================= -->
+<section class="page" data-page="demo" hidden>
+  <div class="wrap stack" style="gap:24px">
+    <div class="sec-head" style="margin-bottom:0">
+      <span class="eyebrow">Demo</span>
+      <h1>The screening worklist</h1>
+      <p class="lede">Patients whose slides were read but who were never tested for MSI, ranked by priority. Choose where to draw the line, then open any patient.</p>
+      <div class="cohort-bar"><span class="small muted">Cancer type</span><div class="seg" role="group" aria-label="Cancer type" id="cohort-seg"></div></div>
+      <div class="subnav"><a href="#demo" data-jump="d-work">Worklist</a><a href="#demo" data-jump="d-perf">Performance</a><a href="#demo" data-jump="d-upload">Upload a slide</a></div>
+    </div>
+    <div class="banner" id="demo-banner"></div>
+    <div class="toolbar" id="d-work">
+      <div class="field"><label for="cut">Send the top <output id="o-cut"></output> to testing</label><input type="range" id="cut" min="5" max="60" step="1" value="33"></div>
+      <label class="switch" for="reveal"><input type="checkbox" id="reveal"> Reveal true MSI status</label>
+      <label class="switch" for="only-flag"><input type="checkbox" id="only-flag"> Flagged only</label>
+      <span class="small mono" id="flag-summary"></span>
+    </div>
+    <div class="demo-grid">
+      <div class="worklist">
+        <table class="work" id="worklist" aria-label="Patients ranked by MSI priority">
+          <thead><tr><th>#</th><th>Patient</th><th>Priority</th><th>Action</th><th class="truth-col" hidden>Truth</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="stack" style="gap:12px">
+        <div class="panelbar">
+          <div class="seg" role="group" aria-label="Slide view" id="demo-seg">
+            <button type="button" data-mode="original" aria-pressed="false">Original</button>
+            <button type="button" data-mode="heat" aria-pressed="false">AI attention</button>
+            <button type="button" data-mode="compare" aria-pressed="true">Compare</button>
+          </div>
+          <span class="legend">low <span class="ramp"></span> high</span>
+        </div>
+        <div class="viewer" id="demo-viewer" data-mode="compare" style="--split:50%;border:1px solid var(--line)">
+          <div id="demo-layers"></div>
+          <div class="divider"></div><div class="knob" aria-hidden="true">⇆</div>
+          <input type="range" id="demo-range" min="0" max="100" value="50" aria-label="Drag to compare the slide with the AI attention map">
+        </div>
+        <div class="report" id="report"></div>
+      </div>
+    </div>
+
+    <div class="sec stack" id="d-perf" style="padding-top:48px;gap:20px">
+      <div class="sec-head" style="margin-bottom:0"><span class="eyebrow">Performance</span><h2>How well it finds MSI-high patients</h2><p class="muted" id="perf-sub">Held-out test set: 20% of patients, split off before training and used once at the end. Every score comes from a model that never saw that patient.</p></div>
+      <div class="kpis" id="kpis"></div>
+      <div class="chart"><div class="row" style="justify-content:space-between"><h3>Screening curve</h3><span class="small muted">Testing in Histofinder's order vs at random</span></div><div id="chart-screen"></div><p class="small muted" id="screen-note"></p></div>
+      <div class="charts2"><div class="chart"><h3>ROC curve</h3><div id="chart-roc"></div></div><div class="chart"><h3>Share of flagged patients who are MSI-high</h3><div id="chart-enrich"></div></div></div>
+      <div class="chart"><h3>Operating points</h3><p class="small muted">What happens if you send different shares of untested patients to testing.</p><div class="scroll-x"><table class="op" id="optable"></table></div></div>
+      <p class="small muted">These are held-out results inside one public dataset (TCGA); small test sets give wide confidence intervals. External validation of a related rule-out tool on 600 new cases reached an AUROC of 0.88 (<a href="https://www.nature.com/articles/s41467-023-42453-6" target="_blank" rel="noopener">Saillard et al., 2023</a>); testing on new hospitals and scanners is Histofinder's next step.</p>
+    </div>
+
+    <div class="panels" id="d-upload">
+      <div class="drop stack">
+        <span class="eyebrow">Analyse a new slide</span>
+        <h3>Upload a whole-slide image</h3>
+        <p class="muted small">Whole-slide images are 0.5–2 GB and need a GPU, so they are analysed in the live analyzer rather than in this page.</p>
+        <input type="file" id="wsi-file" accept=".svs,.tif,.tiff,.ndpi,.mrxs,.scn" aria-label="Choose a whole-slide image">
+        <p class="small" id="wsi-status"></p>
+        <div class="row"><a class="btn primary" id="live-link" href="#" target="_blank" rel="noopener">Open the live analyzer</a></div>
+      </div>
+      <div class="drop stack">
+        <span class="eyebrow">Your model's results</span>
+        <h3>Load the notebook's output folder</h3>
+        <p class="muted small">Pick the <span class="mono">histofind_msi</span> folder. This page reads <span class="mono">demo_data/</span> and <span class="mono">results/</span> in your browser only; nothing is uploaded.</p>
+        <input type="file" id="folder-input" webkitdirectory directory multiple aria-label="Choose the histofind_msi results folder">
+        <p class="small" id="folder-status"></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================= ABOUT ================================= -->
+<section class="page" data-page="about" hidden>
+  <div class="wrap two">
+    <div class="stack">
+      <span class="eyebrow">About</span>
+      <h1>Why Histofinder exists</h1>
+      <p class="lede">The information that decides a cancer patient's treatment, and sometimes their family's future, is often already sitting on a glass slide. Histofinder exists so that no one misses it because a test was never ordered.</p>
+      <div class="stack" style="gap:8px;padding-top:8px">
+        <h3>Tawsifur Rahman</h3>
+        <p class="muted">Founder. PhD candidate in Biomedical Engineering at Johns Hopkins University. His research is on teaching AI to read whole-slide pathology images when labels are weak or scarce, which is the core problem behind predicting a tumour's molecular status from a routine slide. His work on computational pathology has appeared in <i>Nature Digital Medicine</i> and <i>Modern Pathology</i>.</p>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="cta-block" style="grid-template-columns:1fr">
+        <span class="eyebrow">Request a pilot</span>
+        <h2 style="font-size:var(--step-2)">Pathologists, labs and cancer centres</h2>
+        <p class="muted">If your patients miss MMR/MSI testing, we would like to run Histofinder on a de-identified set of your slides and show you what it finds.</p>
+        <div class="stack" style="gap:6px"><span class="small muted">Email</span><div class="row"><span class="mono" id="email">tawsifurrahman.1426@gmail.com</span><button class="btn ghost sm" id="copy-email" type="button">Copy</button></div></div>
+      </div>
+      <p class="small muted">Research prototype. Not for diagnostic use. Data: The Cancer Genome Atlas (TCGA Research Network). All slide images are de-identified research slides from TCGA, used for research only.</p>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="site">
+  <div class="wrap"><span>Histofinder · Research use only, not for diagnostic use</span><span>Data: The Cancer Genome Atlas (TCGA Research Network)</span></div>
+</footer>
+
+<script>
+/* ================= settings ================= */
+const LIVE_ANALYZER_URL = "";   // Hugging Face Space link of the upload analyzer, when it is live
+const DATA_DIR = "data/";       // real results: data/<COHORT>/{worklist.csv, oof_predictions.csv, metrics.json, showcase.json, img/}
+const COHORTS = [
+  { key: "COADREAD", label: "Colorectal" },
+  { key: "STAD", label: "Stomach" },
+];
+const COMING = ["Endometrial", "Pancreatic", "Prostate"];   // shown as "coming soon"
+const ROLE_TXT = { caught: "Caught", cleared: "Correctly cleared", false_alarm: "False alarm", missed: "Missed" };
+/* ============================================ */
+
+const PAGES = ["home", "patients", "clinicians", "demo", "about"];
+function route() {
+  const h = (location.hash || "#home").slice(1), page = PAGES.includes(h) ? h : "home";
+  document.querySelectorAll("section.page").forEach(s => { s.hidden = s.dataset.page !== page; });
+  document.querySelectorAll("nav.tabs a:not(.cta)").forEach(a => a.setAttribute("aria-current", a.getAttribute("href") === "#" + page ? "page" : "false"));
+  if (page === "demo") renderResults();
+  window.scrollTo(0, 0);
+}
+window.addEventListener("hashchange", route);
+document.querySelectorAll("[data-jump]").forEach(a => a.addEventListener("click", e => { e.preventDefault(); const t = document.getElementById(a.dataset.jump); if (t) t.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }); }));
+
+/* ---------- random + illustrative tissue ---------- */
+function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function gauss(r) { let u = 0, v = 0; while (!u) u = r(); while (!v) v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+const MAGMA = [[44,17,95],[114,31,129],[183,55,121],[241,96,93],[254,176,120],[252,253,191]];
+function magma(t) { t = Math.max(0, Math.min(1, t)) * (MAGMA.length - 1); const i = Math.min(MAGMA.length - 2, Math.floor(t)), f = t - i; return MAGMA[i].map((c, k) => Math.round(c + (MAGMA[i + 1][k] - c) * f)); }
+function drawTissue(base, over, seed, msi) {
+  const W = base.width, H = base.height, r = rng(seed), g = base.getContext("2d"), o = over.getContext("2d"), S = W / 900;
+  g.fillStyle = "#f4eef3"; g.fillRect(0, 0, W, H);
+  const lobes = []; const nL = 4 + Math.floor(r() * 3);
+  for (let i = 0; i < nL; i++) lobes.push({ x: W * (0.22 + r() * 0.56), y: H * (0.28 + r() * 0.44), rx: W * (0.16 + r() * 0.14), ry: H * (0.18 + r() * 0.16), a: r() * Math.PI });
+  const inside = (x, y) => lobes.some(L => { const c = Math.cos(L.a), s = Math.sin(L.a), dx = x - L.x, dy = y - L.y, u = (dx * c + dy * s) / L.rx, v = (-dx * s + dy * c) / L.ry; return u * u + v * v < 1; });
+  for (const L of lobes) { g.save(); g.translate(L.x, L.y); g.rotate(L.a); g.beginPath(); g.ellipse(0, 0, L.rx, L.ry, 0, 0, Math.PI * 2); g.fillStyle = "#e3a3c0"; g.fill(); g.restore(); }
+  for (let i = 0; i < 2600 * S * S; i++) { const x = r() * W, y = r() * H; if (!inside(x, y)) continue; g.strokeStyle = `rgba(${200 + r() * 40},${110 + r() * 50},${150 + r() * 40},${0.35 + r() * 0.3})`; g.lineWidth = (0.6 + r()) * S; const a = r() * Math.PI, l = (6 + r() * 14) * S; g.beginPath(); g.moveTo(x, y); g.lineTo(x + Math.cos(a) * l, y + Math.sin(a) * l); g.stroke(); }
+  const nM = msi ? 2 + Math.floor(r() * 3) : Math.floor(r() * 2);
+  for (let i = 0; i < nM; i++) { let x, y, t = 0; do { x = r() * W; y = r() * H; t++; } while (!inside(x, y) && t < 50); g.beginPath(); g.ellipse(x, y, (30 + r() * 40) * S, (20 + r() * 30) * S, r() * 3, 0, Math.PI * 2); g.fillStyle = "rgba(196,200,226,0.75)"; g.fill(); }
+  const glands = [];
+  for (let i = 0; i < 26 * S * S + 10; i++) {
+    let x, y, t = 0; do { x = r() * W; y = r() * H; t++; } while (!inside(x, y) && t < 40); if (t >= 40) continue;
+    const rx = (14 + r() * 22) * S, ry = (9 + r() * 14) * S, a = r() * Math.PI; glands.push({ x, y });
+    g.save(); g.translate(x, y); g.rotate(a); g.beginPath(); g.ellipse(0, 0, rx + 5 * S, ry + 5 * S, 0, 0, Math.PI * 2); g.fillStyle = "#d77fa8"; g.fill(); g.beginPath(); g.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2); g.fillStyle = "#f7eef4"; g.fill();
+    const n = Math.round((rx + ry) / (3.2 * S)); for (let k = 0; k < n; k++) { const th = (k / n) * Math.PI * 2; g.beginPath(); g.ellipse(Math.cos(th) * (rx + 3 * S), Math.sin(th) * (ry + 3 * S), 2.6 * S, 1.5 * S, th, 0, Math.PI * 2); g.fillStyle = "#4a2f86"; g.fill(); }
+    g.restore();
+  }
+  for (let i = 0; i < 1800 * S * S; i++) { const x = r() * W, y = r() * H; if (!inside(x, y)) continue; g.beginPath(); g.arc(x, y, (1 + r() * 1.4) * S, 0, Math.PI * 2); g.fillStyle = `rgba(80,52,140,${0.45 + r() * 0.4})`; g.fill(); }
+  const GX = 36, GY = 22, grid = new Float32Array(GX * GY), nC = msi ? 6 + Math.floor(r() * 4) : 1 + Math.floor(r() * 2);
+  for (let c = 0; c < nC; c++) { let cx, cy, t = 0; do { cx = r() * W; cy = r() * H; t++; } while (!inside(cx, cy) && t < 60); const n = (msi ? 120 : 60) + r() * 120, sp = (14 + r() * 26) * S;
+    for (let k = 0; k < n; k++) { const x = cx + gauss(r) * sp, y = cy + gauss(r) * sp; if (!inside(x, y)) continue; g.beginPath(); g.arc(x, y, (1.5 + r() * 0.9) * S, 0, Math.PI * 2); g.fillStyle = "#2f1d63"; g.fill(); grid[Math.min(GY - 1, Math.floor(y / H * GY)) * GX + Math.min(GX - 1, Math.floor(x / W * GX))] += 1; } }
+  for (const gl of glands) grid[Math.min(GY - 1, Math.floor(gl.y / H * GY)) * GX + Math.min(GX - 1, Math.floor(gl.x / W * GX))] += 4;
+  const bl = new Float32Array(GX * GY);
+  for (let j = 0; j < GY; j++) for (let i = 0; i < GX; i++) { let s = 0, w = 0; for (let dj = -2; dj <= 2; dj++) for (let di = -2; di <= 2; di++) { const ii = i + di, jj = j + dj; if (ii < 0 || jj < 0 || ii >= GX || jj >= GY) continue; const k = Math.exp(-(di * di + dj * dj) / 2.2); s += grid[jj * GX + ii] * k; w += k; } bl[j * GX + i] = s / w; }
+  let mx = 0; for (const v of bl) mx = Math.max(mx, v);
+  o.drawImage(base, 0, 0); const cw = W / GX, ch = H / GY;
+  for (let j = 0; j < GY; j++) for (let i = 0; i < GX; i++) { const x = (i + 0.5) * cw, y = (j + 0.5) * ch; if (!inside(x, y)) continue; const [R, G, B] = magma(Math.pow(bl[j * GX + i] / (mx || 1), 0.7)); o.fillStyle = `rgba(${R},${G},${B},0.62)`; o.fillRect(i * cw, j * ch, cw + 0.5, ch + 0.5); }
+}
+const seedOf = s => [...s].reduce((a, c) => a * 31 + c.charCodeAt(0), 7) >>> 0;
+function fillLayers(el, patient, img, msi, w = 900, h = 560) {
+  el.innerHTML = "";
+  if (img) { el.innerHTML = `<img src="${img.slide}" alt="Original H&amp;E slide, ${patient}"><img class="over" src="${img.heat}" alt="AI attention map, ${patient}">`; return; }
+  if (state.source === "real") { el.innerHTML = `<div class="noimg">Slide preview not published for ${patient}.<br>Rows marked ● have a preview. Only slides that passed image checks (no pen marks, enough tissue) are shown.</div>`; return; }
+  const b = document.createElement("canvas"), o = document.createElement("canvas"); b.width = o.width = w; b.height = o.height = h; o.className = "over";
+  drawTissue(b, o, seedOf(patient), msi); b.setAttribute("aria-label", "Illustrative tissue"); o.setAttribute("aria-label", "Illustrative attention"); el.append(b, o);
+}
+function bindViewer(viewer, range, seg) {
+  const set = v => viewer.style.setProperty("--split", v + "%"); range.addEventListener("input", e => set(e.target.value)); set(range.value);
+  seg.querySelectorAll("button").forEach(b => b.addEventListener("click", () => { viewer.dataset.mode = b.dataset.mode; seg.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", String(x === b))); }));
+}
+
+/* ---------- data ---------- */
+function exampleCohort() {
+  const r = rng(42), N = 508, P = 67, rows = [];
+  for (let i = 0; i < N; i++) { const label = i < P ? 1 : 0, prob = Math.max(0.001, Math.min(0.999, (label ? 0.66 : 0.36) + gauss(r) * 0.17)); rows.push({ patient: "EX-" + String(i + 1).padStart(3, "0"), label, prob, fold: i % 5 }); }
+  for (let f = 0; f < 5; f++) { const fr = rows.filter(x => x.fold === f).sort((a, b) => a.prob - b.prob); fr.forEach((x, k) => x.score = (k + 1) / fr.length); }
+  return rows.sort((a, b) => b.score - a.score || b.prob - a.prob);
+}
+const state = { source: "example", oof: exampleCohort(), worklist: null, images: {}, selected: 0, cut: 0.33, cohort: "COADREAD", data: {}, metricsJ: null, show: null };
+function exampleWorklist() { const top = state.oof.slice(0, 6), rest = state.oof.slice(6), r = rng(7), pick = [...top]; while (pick.length < 18) { const x = rest[Math.floor(r() * rest.length)]; if (!pick.includes(x)) pick.push(x); } pick.sort((a, b) => b.score - a.score); return pick.map((x, i) => ({ ...x, patient: "Example " + String(i + 1).padStart(2, "0") })); }
+state.worklist = exampleWorklist();
+
+/* ---------- metrics ---------- */
+function auc(rows, key) { const pos = rows.filter(x => x.label === 1).length, neg = rows.length - pos; if (!pos || !neg) return NaN; const s = rows.slice().sort((a, b) => a[key] - b[key]); let i = 0, sum = 0; while (i < s.length) { let j = i; while (j < s.length && s[j][key] === s[i][key]) j++; const avg = (i + j + 1) / 2; for (let k = i; k < j; k++) if (s[k].label === 1) sum += avg; i = j; } return (sum - pos * (pos + 1) / 2) / (pos * neg); }
+function metrics(oof) {
+  const N = oof.length, P = oof.filter(x => x.label === 1).length, base = P / N; let found = 0; const curve = [[0, 0]], need = {};
+  oof.forEach((x, i) => { found += x.label; curve.push([(i + 1) / N, found / P]); for (const w of [0.5, 0.8, 0.9]) if (!need[w] && found >= Math.ceil(w * P)) need[w] = i + 1; });
+  const at = f => { const k = Math.max(1, Math.round(N * f)), tp = oof.slice(0, k).filter(x => x.label).length, fn = P - tp, tn = (N - k) - fn; return { f, k, tp, prec: tp / k, sens: tp / P, spec: tn / (N - P), npv: (N - k) ? tn / (N - k) : 1, perFound: tp ? k / tp : Infinity }; };
+  const folds = [...new Set(oof.map(x => x.fold))].filter(f => !Number.isNaN(f)), fa = folds.map(f => auc(oof.filter(x => x.fold === f), "prob")).filter(v => !isNaN(v));
+  return { N, P, base, curve, need, at, cvAuc: fa.length ? fa.reduce((a, b) => a + b) / fa.length : auc(oof, "score"), pooled: auc(oof, "score") };
+}
+
+/* ---------- home: hero + gallery + estimator ---------- */
+function renderHero() {
+  const cr = state.data.COADREAD, hp = cr && cr.show && cr.show.showcase.find(p => cr.show.roles[p] === "caught" && cr.images[p]);
+  const real = state.source === "real" && !!hp;
+  const x = real ? { ...cr.worklist.find(w => w.patient === hp), images: cr.images } : { patient: "hero", score: 0.92, label: 1 };
+  fillLayers(document.getElementById("hero-layers"), real ? x.patient : "hero-slide-2026", real ? x.images[x.patient] : null, true);
+  document.getElementById("hero-id").textContent = real ? x.patient + " · colorectal" : "Example slide";
+  document.getElementById("hero-score").textContent = Math.round(x.score * 100);
+  document.getElementById("hero-meter").style.width = Math.round(x.score * 100) + "%";
+  document.getElementById("hero-note").textContent = real ? `Real TCGA colorectal slide. Sequencing confirmed MSI-high; the model, which never saw this patient, ranked it in the top ${Math.max(1, Math.round((1 - x.score) * 100))}%. Research use only.` : "Illustrative tissue drawn by code. Real TCGA slides appear here once results are published.";
+}
+function renderGallery() {
+  const g = document.getElementById("gallery");
+  const pickFrom = (key, role, n) => { const d = state.data[key]; if (!d || !d.show) return []; return d.show.showcase.filter(p => d.show.roles[p] === role && d.images[p]).slice(0, n).map(p => ({ ...d.worklist.find(w => w.patient === p), img: d.images[p], role, type: COHORTS.find(c => c.key === key).label })); };
+  const realItems = [...pickFrom("COADREAD", "caught", 2), ...pickFrom("STAD", "caught", 1), ...pickFrom("COADREAD", "cleared", 1)].filter(x => x.patient);
+  const real = state.source === "real" && realItems.length >= 2;
+  let items;
+  if (real) items = realItems;
+  else items = [{ patient: "Example A", score: 0.95, label: 1 }, { patient: "Example B", score: 0.88, label: 1 }, { patient: "Example C", score: 0.81, label: 1 }, { patient: "Example D", score: 0.12, label: 0 }];
+  g.innerHTML = "";
+  items.forEach(x => {
+    const c = document.createElement("article"); c.className = "gcard";
+    const img = real ? x.img : null;
+    c.innerHTML = `<div class="pic"></div><div class="meta"><div class="top"><span class="mono small">${x.patient}${x.type ? ` · ${x.type}` : ""}</span>${x.label ? '<span class="chip msi">MSI-high</span>' : '<span class="chip mss">MSS</span>'}</div><div class="row" style="gap:8px;flex-wrap:nowrap"><span class="small muted">Priority</span><div class="meter" style="flex:1"><i style="width:${Math.round(x.score * 100)}%"></i></div><span class="mono small">${Math.round(x.score * 100)}</span></div>${x.role ? `<span class="chip role-${x.role}" style="align-self:flex-start">${ROLE_TXT[x.role]} by the model</span>` : ""}<button type="button" class="btn ghost sm flip" aria-pressed="false">Show AI view</button></div>`;
+    const pic = c.querySelector(".pic");
+    if (img) pic.innerHTML = `<img src="${img.slide}" alt="Original H&amp;E slide, ${x.patient}"><img class="heat" src="${img.heat}" alt="AI attention map, ${x.patient}">`;
+    else { const b = document.createElement("canvas"), o = document.createElement("canvas"); b.width = o.width = 480; b.height = o.height = 360; o.className = "heat"; drawTissue(b, o, seedOf(x.patient), !!x.label); pic.append(b, o); }
+    const btn = c.querySelector(".flip"); btn.addEventListener("click", () => { const on = c.classList.toggle("show-heat"); btn.textContent = on ? "Show original" : "Show AI view"; btn.setAttribute("aria-pressed", String(on)); });
+    g.appendChild(c);
+  });
+  document.getElementById("gallery-note").textContent = real ? "Real TCGA diagnostic slides; true MSI status comes from DNA sequencing. All are held-out test patients. The AI view shows where the model put its weight, not a diagnosis; ranking is by priority within each cancer type." : "Illustrative tissue drawn by code. These cards switch to real TCGA slides and their AI attention maps once results are published.";
+}
+function renderCalc() {
+  const v = id => +document.getElementById(id).value, cases = v("c-cases"), tested = v("c-tested") / 100, msi = v("c-msi") / 100, flag = v("c-flag") / 100;
+  document.getElementById("o-cases").textContent = cases; document.getElementById("o-tested").textContent = Math.round(tested * 100) + "%"; document.getElementById("o-msi").textContent = Math.round(msi * 100) + "%"; document.getElementById("o-flag").textContent = Math.round(flag * 100) + "%";
+  const sens = metrics((state.data.COADREAD || state).oof).at(flag).sens, untested = cases * (1 - tested), found = untested * msi * sens, lynch = found * (3 / 15), relatives = lynch * 4;
+  const rows = [["Untested patients per year", untested, "var(--muted)"], ["Sent to MSI testing", untested * flag, "var(--hema)"], ["MSI-high patients found", found, "var(--rose)"], ["Possible Lynch syndrome cases", lynch, "var(--primary)"], ["Relatives who could be offered testing", relatives, "var(--primary)"]];
+  const mx = untested || 1, fmt = n => n < 10 ? n.toFixed(1) : Math.round(n);
+  document.getElementById("funnel").innerHTML = rows.map(([l, n, c]) => `<div class="f"><span>${l}</span><span class="val">${fmt(n)}</span><div class="track"><i style="width:${Math.max(1.5, n / mx * 100)}%;background:${c}"></i></div></div>`).join("");
+  document.getElementById("calc-note").textContent = `Estimate only. Uses the colorectal model's sensitivity when sending the top ${Math.round(flag * 100)}% (${Math.round(sens * 100)}%${state.source === "example" ? ", from example data" : ""}); Lynch syndrome as about 3% of colorectal cancers; about four first-degree relatives each, roughly half of whom would carry the change (≈${fmt(relatives / 2)} people who could start early screening).`;
+}
+for (const id of ["c-cases", "c-tested", "c-msi", "c-flag"]) document.getElementById(id).addEventListener("input", renderCalc);
+
+/* ---------- worklist ---------- */
+const cutIndex = list => Math.max(1, Math.round(list.length * state.cut));
+function renderWorklist() {
+  const list = state.worklist, tb = document.querySelector("#worklist tbody"), reveal = document.getElementById("reveal").checked, only = document.getElementById("only-flag").checked, K = cutIndex(list);
+  document.getElementById("o-cut").textContent = Math.round(state.cut * 100) + "%"; document.querySelectorAll(".truth-col").forEach(e => e.hidden = !reveal); tb.innerHTML = "";
+  list.forEach((x, i) => {
+    if (only && i >= K) return;
+    const tr = document.createElement("tr"); tr.tabIndex = 0; tr.setAttribute("aria-selected", String(i === state.selected)); if (i === K - 1) tr.className = "cut";
+    tr.innerHTML = `<td class="mono">${i + 1}</td><td class="mono" style="white-space:nowrap">${x.patient}</td><td><div class="row" style="gap:8px;flex-wrap:nowrap"><div class="bar"><i style="width:${Math.round(x.score * 100)}%"></i></div><span class="mono small">${Math.round(x.score * 100)}</span></div></td><td>${i < K ? '<span class="chip flag">Order MSI test</span>' : '<span class="chip none">No action</span>'}</td><td ${reveal ? "" : "hidden"}>${x.label ? '<span class="chip msi">MSI-high</span>' : '<span class="chip mss">MSS</span>'}</td>`;
+    const pick = () => { state.selected = i; renderWorklist(); renderDetail(); };
+    tr.addEventListener("click", pick); tr.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(); } }); tb.appendChild(tr);
+  });
+  const hits = list.slice(0, K).filter(x => x.label).length, all = list.filter(x => x.label).length;
+  document.getElementById("flag-summary").textContent = reveal ? `${K} flagged · ${hits} of ${all} MSI-high caught` : `${K} of ${list.length} flagged`;
+}
+function reportText(x, flagged) { return [`Histofinder MSI pre-screen (research use only)`, `Patient: ${x.patient}`, `MSI priority score: ${Math.round(x.score * 100)}/100 (rank ${state.selected + 1} of ${state.worklist.length})`, flagged ? `Recommendation: order MMR immunohistochemistry or MSI PCR on existing tissue. If MMR-deficient: review immunotherapy eligibility; if MLH1 loss, check BRAF V600E / MLH1 promoter methylation; otherwise refer for genetic counselling (Lynch syndrome) and family cascade testing.` : `Recommendation: low priority for MSI testing based on morphology; follow standard guidelines.`, `Not a diagnosis. The confirmatory test decides.`].join("\n"); }
+function renderDetail() {
+  const x = state.worklist[state.selected], K = cutIndex(state.worklist), flagged = state.selected < K, reveal = document.getElementById("reveal").checked;
+  fillLayers(document.getElementById("demo-layers"), x.patient, state.images[x.patient], !!x.label && x.score > 0.5);
+  document.getElementById("report").innerHTML = `<div class="row" style="justify-content:space-between"><span class="mono" style="font-size:1.05rem;font-weight:500">${x.patient}</span>${flagged ? '<span class="chip flag">Order MSI test</span>' : '<span class="chip none">No action</span>'}</div>
+    <dl class="kv"><dt>Priority score</dt><dd>${Math.round(x.score * 100)} / 100</dd><dt>Rank</dt><dd>${state.selected + 1} of ${state.worklist.length}</dd>${reveal ? `<dt>True status</dt><dd>${x.label ? "MSI-high" : "MSS"}</dd>` : ""}</dl>
+    ${flagged ? `<div class="next"><div><b>1 · Confirm</b>MMR IHC or MSI PCR on existing tissue</div><div><b>2 · Treat</b>If MMR-deficient, review immunotherapy</div><div><b>3 · Family</b>If inherited, genetic counselling and cascade testing</div></div>` : `<p class="muted">Low priority based on morphology. Follow standard testing guidelines.</p>`}
+    <div class="row" style="justify-content:space-between"><span class="small muted">${state.source === "example" ? "Example data drawn by code, not a patient." : "Model never saw this patient during training."} Not for diagnostic use.</span><button class="btn ghost sm" id="copy-report" type="button">Copy report</button></div>`;
+  const im = state.images[x.patient];
+  if (im && im.tiles) { const fig = document.createElement("figure"); fig.className = "stack"; fig.style.gap = "6px"; fig.innerHTML = `<img class="tiles-strip" src="${im.tiles}" alt="The six tissue tiles the model weighted most, ${x.patient}"><figcaption class="small muted">The six tiles the model weighted most (10x).</figcaption>`; fig.querySelector("img").onerror = () => fig.remove(); document.getElementById("report").appendChild(fig); }
+  document.getElementById("copy-report").addEventListener("click", e => copyText(reportText(x, flagged), e.target, "Copy report"));
+}
+function renderBanner() { const ex = state.source === "example", b = document.getElementById("demo-banner"); b.className = "banner" + (ex ? "" : " real"); b.innerHTML = ex ? "<b>Example data.</b> Patients, slides and numbers here are generated for illustration, not real results." : cohortBanner(); }
+
+function cohortBanner() {
+  const c = COHORTS.find(k => k.key === state.cohort), m = state.metricsJ || {}, ci = m.auc_95ci ? ` (95% CI ${m.auc_95ci[0].toFixed(2)}–${m.auc_95ci[1].toFixed(2)})` : "";
+  return `<b>Real model results, ${c.label.toLowerCase()} cancer.</b> Showing ${state.worklist.length} test patients with slide previews; performance below uses all ${state.oof.length} held-out patients (${state.oof.filter(x => x.label).length} MSI-high by sequencing). Test AUC ${(m.auc || 0).toFixed(2)}${ci}. Research use only.`;
+}
+/* ---------- performance charts ---------- */
+const line = (pts, w, h, p) => pts.map(([x, y], i) => `${i ? "L" : "M"}${(p.l + x * (w - p.l - p.r)).toFixed(1)} ${(h - p.b - y * (h - p.t - p.b)).toFixed(1)}`).join("");
+function axes(w, h, p, xl, yl) { let s = ""; for (let i = 0; i <= 5; i++) { const t = i / 5, x = p.l + t * (w - p.l - p.r), y = h - p.b - t * (h - p.t - p.b); s += `<line class="grid" x1="${p.l}" x2="${w - p.r}" y1="${y}" y2="${y}"/><text x="${p.l - 8}" y="${y + 4}" text-anchor="end">${Math.round(t * 100)}%</text><text x="${x}" y="${h - p.b + 16}" text-anchor="middle">${Math.round(t * 100)}%</text>`; } return s + `<line class="axis" x1="${p.l}" x2="${w - p.r}" y1="${h - p.b}" y2="${h - p.b}"/><line class="axis" x1="${p.l}" x2="${p.l}" y1="${p.t}" y2="${h - p.b}"/><text x="${(p.l + w - p.r) / 2}" y="${h - 6}" text-anchor="middle">${xl}</text><text transform="rotate(-90 14 ${(p.t + h - p.b) / 2})" x="14" y="${(p.t + h - p.b) / 2}" text-anchor="middle">${yl}</text>`; }
+function renderResults() {
+  const m = metrics(state.oof), fmt = v => isNaN(v) ? "–" : v.toFixed(2), ex = state.source === "example" ? " · example" : "", a20 = m.at(0.2);
+  document.getElementById("kpis").innerHTML = `<div class="kpi"><span class="v">${fmt(m.cvAuc)}</span><span class="l">${state.source === "real" ? "Test-set AUC" : "Cross-validated AUC"}${ex}</span></div><div class="kpi"><span class="v">${(a20.prec / m.base).toFixed(1)}×</span><span class="l">More MSI-high per test in the top 20% vs random${ex}</span></div><div class="kpi"><span class="v">${Math.round(m.need[0.8] / m.N * 100)}%</span><span class="l">Of patients tested to find 80% of MSI-high${ex}</span></div><div class="kpi"><span class="v">${m.N}</span><span class="l">Patients · ${m.P} MSI-high (${Math.round(m.base * 100)}%)${ex}</span></div>`;
+  const W = 860, H = 360, p = { l: 56, r: 20, t: 16, b: 46 }, mark = m.need[0.8] / m.N, mx = p.l + mark * (W - p.l - p.r), my = H - p.b - 0.8 * (H - p.t - p.b);
+  document.getElementById("chart-screen").innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Screening curve">${axes(W, H, p, "% of patients tested", "% of MSI-high found")}<path d="${line([[0, 0], [1, 1]], W, H, p)}" stroke="var(--muted)" stroke-dasharray="5 5" fill="none"/><path d="${line(m.curve, W, H, p)} L${W - p.r} ${H - p.b} L${p.l} ${H - p.b}Z" fill="var(--primary)" opacity="0.1"/><path d="${line(m.curve, W, H, p)}" stroke="var(--primary)" stroke-width="2.5" fill="none"/><line x1="${mx}" x2="${mx}" y1="${my}" y2="${H - p.b}" stroke="var(--rose)" stroke-dasharray="3 4"/><circle cx="${mx}" cy="${my}" r="5" fill="var(--rose)"/><text x="${mx + 12}" y="${my + 22}" class="t-ink">80% found after testing ${Math.round(mark * 100)}%</text><text x="${W - p.r - 150}" y="${H - p.b - 0.6 * (H - p.t - p.b)}">testing at random</text></svg>`;
+  document.getElementById("screen-note").textContent = `To find 80% of MSI-high patients: test ${m.need[0.8]} in Histofinder's order vs about ${Math.round(0.8 * m.N)} at random.`;
+  let tp = 0, fp = 0; const roc = [[0, 0]], neg = m.N - m.P; state.oof.forEach(x => { if (x.label) tp++; else fp++; roc.push([fp / neg, tp / m.P]); });
+  const W2 = 420, H2 = 320, p2 = { l: 52, r: 14, t: 12, b: 44 };
+  document.getElementById("chart-roc").innerHTML = `<svg viewBox="0 0 ${W2} ${H2}" role="img" aria-label="ROC curve">${axes(W2, H2, p2, "False positive rate", "True positive rate")}<path d="${line([[0, 0], [1, 1]], W2, H2, p2)}" stroke="var(--muted)" stroke-dasharray="5 5" fill="none"/><path d="${line(roc, W2, H2, p2)}" stroke="var(--hema)" stroke-width="2.5" fill="none"/><text x="${W2 - p2.r - 8}" y="${H2 - p2.b - 14}" text-anchor="end" class="t-ink">AUC ${fmt(m.pooled)} (pooled)</text></svg>`;
+  const bars = [["Random", m.base], ["Top 20%", a20.prec], ["Top 10%", m.at(0.1).prec]], W3 = 420, H3 = 320, p3 = { l: 52, r: 14, t: 24, b: 44 }, bw = (W3 - p3.l - p3.r) / bars.length; let s = "";
+  for (let i = 0; i <= 5; i++) { const t = i / 5, y = H3 - p3.b - t * (H3 - p3.t - p3.b); s += `<line class="grid" x1="${p3.l}" x2="${W3 - p3.r}" y1="${y}" y2="${y}"/><text x="${p3.l - 8}" y="${y + 4}" text-anchor="end">${Math.round(t * 100)}%</text>`; }
+  bars.forEach(([n, v], i) => { const x = p3.l + i * bw + bw * 0.22, w = bw * 0.56, h = v * (H3 - p3.t - p3.b), y = H3 - p3.b - h; s += `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="5" fill="${i ? "var(--primary)" : "var(--muted)"}" opacity="${i ? 1 : 0.45}"/><text x="${x + w / 2}" y="${y - 6}" text-anchor="middle" class="t-ink">${Math.round(v * 100)}%</text><text x="${x + w / 2}" y="${H3 - p3.b + 16}" text-anchor="middle">${n}</text>`; });
+  document.getElementById("chart-enrich").innerHTML = `<svg viewBox="0 0 ${W3} ${H3}" role="img" aria-label="Share of flagged patients who are MSI-high">${s}<line class="axis" x1="${p3.l}" x2="${W3 - p3.r}" y1="${H3 - p3.b}" y2="${H3 - p3.b}"/></svg>`;
+  const pc = v => Math.round(v * 100) + "%";
+  document.getElementById("optable").innerHTML = `<thead><tr><th>Send to testing</th><th>Tests</th><th>MSI-high found</th><th>Sensitivity</th><th>Precision</th><th>Specificity</th><th>NPV</th><th>Tests per case found</th></tr></thead><tbody>${[0.1, 0.2, 0.3, 0.5].map(m.at).map(q => `<tr><td>Top ${pc(q.f)}</td><td>${q.k}</td><td>${q.tp} of ${m.P}</td><td>${pc(q.sens)}</td><td>${pc(q.prec)}</td><td>${pc(q.spec)}</td><td>${pc(q.npv)}</td><td>${q.perFound === Infinity ? "–" : q.perFound.toFixed(1)}</td></tr>`).join("")}</tbody>`;
+}
+
+/* ---------- real data: published files, then folder picker ---------- */
+function parseCSV(t) { const L = t.trim().split(/\r?\n/), h = L.shift().split(","); return L.map(l => { const v = l.split(","), o = {}; h.forEach((k, i) => o[k] = v[i]); return o; }); }
+const toOof = rows => rows.map(r => ({ patient: r.patient, label: +r.label, prob: +r.prob, fold: +r.fold, score: +r.score })).sort((a, b) => b.score - a.score || b.prob - a.prob);
+const toWl = rows => rows.map(r => ({ patient: r.patient, label: +r.label, prob: +r.prob, score: +r.score })).sort((a, b) => b.score - a.score);
+function applyReal() { state.source = "real"; state.selected = 0; renderAll(); }
+async function loadCohort(key) {
+  const base = `${DATA_DIR}${key}/`, get = f => fetch(base + f).then(r => r.ok ? r.text() : null).catch(() => null);
+  const [o, w, mj, sj] = await Promise.all([get("oof_predictions.csv"), get("worklist.csv"), get("metrics.json"), get("showcase.json")]);
+  if (!o || !w) return null;
+  const show = sj ? JSON.parse(sj) : { showcase: [], roles: {} }, worklist = toWl(parseCSV(w)), images = {};
+  const withImg = show.images || worklist.map(x => x.patient);
+  const keep = new Set(withImg); const wlShown = worklist.filter(x => keep.has(x.patient));
+  for (const p of withImg) images[p] = { slide: `${base}img/${p}_slide.jpg`, heat: `${base}img/${p}_heat.jpg`, tiles: show.images ? null : `${base}img/${p}_tiles.jpg` };
+  return { oof: toOof(parseCSV(o)), worklist: wlShown.length ? wlShown : worklist, images, show, metrics: mj ? JSON.parse(mj) : null };
+}
+function setCohort(key) {
+  const d = state.data[key]; if (!d) return;
+  state.cohort = key; state.oof = d.oof; state.worklist = d.worklist; state.images = d.images; state.metricsJ = d.metrics; state.show = d.show; state.selected = Math.max(0, d.worklist.findIndex(x => d.images[x.patient]));
+  document.querySelectorAll("#cohort-seg button[data-key]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.key === key)));
+  renderBanner(); renderWorklist(); renderDetail(); renderCalc(); renderResults();
+}
+async function tryPublished() {
+  try {
+    const got = await Promise.all(COHORTS.map(c => loadCohort(c.key)));
+    COHORTS.forEach((c, i) => { if (got[i]) state.data[c.key] = got[i]; });
+    const avail = COHORTS.filter(c => state.data[c.key]); if (!avail.length) return;
+    const seg = document.getElementById("cohort-seg");
+    seg.innerHTML = avail.map(c => `<button type="button" data-key="${c.key}" aria-pressed="false">${c.label}</button>`).join("") + COMING.map(n => `<button type="button" disabled aria-disabled="true" title="${n} cancer model coming soon" style="opacity:.55;cursor:default">${n}<span class="note-ip">soon</span></button>`).join("");
+    seg.querySelectorAll("button[data-key]").forEach(b => b.addEventListener("click", () => setCohort(b.dataset.key)));
+    state.source = "real"; setCohort(avail[0].key); renderHero(); renderGallery();
+  } catch (e) { /* keep example data */ }
+}
+document.getElementById("folder-input").addEventListener("change", async e => {
+  const byPath = {}; for (const f of e.target.files) byPath[(f.webkitRelativePath || f.name).replace(/\\/g, "/")] = f;
+  const find = s => Object.keys(byPath).find(p => p.endsWith(s)), st = document.getElementById("folder-status");
+  try {
+    const oP = find("results/oof_predictions.csv"), wP = find("demo_data/worklist.csv");
+    if (!oP && !wP) { st.textContent = "Couldn't find results/oof_predictions.csv or demo_data/worklist.csv. Pick the histofind_msi folder."; return; }
+    if (oP) state.oof = toOof(parseCSV(await byPath[oP].text()));
+    if (wP) { state.worklist = toWl(parseCSV(await byPath[wP].text())); state.images = {}; for (const x of state.worklist) { const s = find(`img/${x.patient}_slide.jpg`), h = find(`img/${x.patient}_heat.jpg`); if (s && h) state.images[x.patient] = { slide: URL.createObjectURL(byPath[s]), heat: URL.createObjectURL(byPath[h]) }; } }
+    else { state.worklist = state.oof.slice(0, 30); state.images = {}; }
+    st.textContent = `Loaded ${state.oof.length} patients and ${state.worklist.length} demo patients (${Object.keys(state.images).length} with slide images).`; applyReal();
+  } catch (err) { st.textContent = "Couldn't read that folder: " + err.message; }
+});
+
+/* ---------- helpers ---------- */
+async function copyText(t, btn, label) { try { await navigator.clipboard.writeText(t); btn.textContent = "Copied"; } catch { const ta = document.createElement("textarea"); ta.value = t; document.body.appendChild(ta); ta.select(); btn.textContent = "Selected, press Ctrl+C"; setTimeout(() => ta.remove(), 4000); } setTimeout(() => btn.textContent = label, 1800); }
+document.getElementById("copy-email").addEventListener("click", e => copyText(document.getElementById("email").textContent, e.target, "Copy"));
+document.getElementById("copy-questions").addEventListener("click", e => copyText([...document.querySelectorAll("#questions li")].map(li => "• " + li.textContent).join("\n"), e.target, "Copy the questions"));
+const live = document.getElementById("live-link");
+if (LIVE_ANALYZER_URL) live.href = LIVE_ANALYZER_URL; else { live.removeAttribute("href"); live.setAttribute("aria-disabled", "true"); live.className = "btn ghost"; live.textContent = "Live analyzer coming soon"; live.style.opacity = 0.6; }
+document.getElementById("wsi-file").addEventListener("change", e => { const f = e.target.files[0]; if (!f) return; const gb = f.size / 1e9; document.getElementById("wsi-status").innerHTML = `<span class="mono">${f.name}</span> · ${gb >= 0.1 ? gb.toFixed(2) + " GB" : (f.size / 1e6).toFixed(1) + " MB"}. ` + (LIVE_ANALYZER_URL ? "Open the live analyzer and upload it there." : "The live analyzer isn't online yet; the worklist above shows the research model's results."); });
+document.getElementById("cut").addEventListener("input", e => { state.cut = +e.target.value / 100; renderWorklist(); renderDetail(); });
+document.getElementById("reveal").addEventListener("change", () => { renderWorklist(); renderDetail(); });
+document.getElementById("only-flag").addEventListener("change", renderWorklist);
+
+/* ---------- boot ---------- */
+function renderAll() { renderHero(); renderGallery(); renderCalc(); renderBanner(); renderWorklist(); renderDetail(); if (location.hash === "#demo") renderResults(); }
+bindViewer(document.getElementById("hero-viewer"), document.getElementById("hero-range"), document.querySelector(".slidepanel .seg"));
+bindViewer(document.getElementById("demo-viewer"), document.getElementById("demo-range"), document.getElementById("demo-seg"));
+renderAll(); route(); tryPublished();
+</script>
+
+</body></html>
