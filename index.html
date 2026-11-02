@@ -1,4 +1,10 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Histofinder: AI pre-screening that reads routine H&E slides and flags untested colorectal and stomach cancer patients likely to be MSI-high. Research use only.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20120%20120%22%20width%3D%22120%22%20height%3D%22120%22%3E%20%20%20%3C%21--%20%22Lens%22%3A%20a%20cheerful%20magnifying%20glass%20with%20a%20little%20cell%20reflected%20in%20its%20eye%20--%3E%20%20%20%3Cellipse%20cx%3D%2256%22%20cy%3D%22108%22%20rx%3D%2234%22%20ry%3D%225%22%20fill%3D%22%231e2b30%22%20opacity%3D%22.08%22/%3E%20%20%20%3Cpath%20d%3D%22M80%2080%20L104%20104%22%20stroke%3D%22%23155f5d%22%20stroke-width%3D%2211%22%20stroke-linecap%3D%22round%22/%3E%20%20%20%3Cpath%20d%3D%22M80%2080%20L104%20104%22%20stroke%3D%22%232a948f%22%20stroke-width%3D%225%22%20stroke-linecap%3D%22round%22/%3E%20%20%20%3Ccircle%20cx%3D%2252%22%20cy%3D%2252%22%20r%3D%2238%22%20fill%3D%22%23ecf7f5%22%20stroke%3D%22%231f7a78%22%20stroke-width%3D%228%22/%3E%20%20%20%3Cpath%20d%3D%22M30%2036a26%2026%200%200%201%2018-12%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%225%22%20stroke-linecap%3D%22round%22/%3E%20%20%20%3Cellipse%20cx%3D%2240%22%20cy%3D%2252%22%20rx%3D%226%22%20ry%3D%227.5%22%20fill%3D%22%231e2b30%22/%3E%3Cellipse%20cx%3D%2264%22%20cy%3D%2252%22%20rx%3D%226%22%20ry%3D%227.5%22%20fill%3D%22%231e2b30%22/%3E%20%20%20%3Ccircle%20cx%3D%2242.5%22%20cy%3D%2249%22%20r%3D%222.2%22%20fill%3D%22%23fff%22/%3E%3Ccircle%20cx%3D%2266.5%22%20cy%3D%2249%22%20r%3D%222.2%22%20fill%3D%22%23fff%22/%3E%20%20%20%3Cellipse%20cx%3D%2231%22%20cy%3D%2263%22%20rx%3D%225.5%22%20ry%3D%223.2%22%20fill%3D%22%23ef7aa3%22%20opacity%3D%22.6%22/%3E%3Cellipse%20cx%3D%2273%22%20cy%3D%2263%22%20rx%3D%225.5%22%20ry%3D%223.2%22%20fill%3D%22%23ef7aa3%22%20opacity%3D%22.6%22/%3E%20%20%20%3Cpath%20d%3D%22M44%2066q8%207%2016%200%22%20fill%3D%22none%22%20stroke%3D%22%231e2b30%22%20stroke-width%3D%223%22%20stroke-linecap%3D%22round%22/%3E%20%20%20%3Ccircle%20cx%3D%2274%22%20cy%3D%2230%22%20r%3D%226%22%20fill%3D%22%23e392b6%22%20stroke%3D%22%23c76e97%22%20stroke-width%3D%221.6%22/%3E%3Ccircle%20cx%3D%2274%22%20cy%3D%2230%22%20r%3D%222.2%22%20fill%3D%22%237d5aa6%22/%3E%20%3C/svg%3E%20">
 <title>Histofinder</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -284,14 +290,21 @@ footer.site .wrap { display: flex; gap: 16px; justify-content: space-between; fl
 @media (prefers-reduced-motion: no-preference) { section.page { animation: fade .3s ease-out both; } @keyframes fade { from { transform: translateY(4px); } to { transform: none; } } }
 </style>
 
+</head>
+<body>
 <header class="site">
   <div class="wrap">
     <a class="brand" href="#home" aria-label="Histofinder home">
-      <svg class="logo" width="30" height="30" viewBox="0 0 32 32" aria-hidden="true">
-        <circle cx="13.5" cy="13.5" r="10.5" fill="var(--primary-soft)" stroke="var(--primary)" stroke-width="2.2"/>
-        <g fill="var(--primary)"><circle cx="13.5" cy="7.6" r="1.45"/><circle cx="18.6" cy="10.5" r="1.45"/><circle cx="18.6" cy="16.5" r="1.45"/><circle cx="13.5" cy="19.4" r="1.45"/><circle cx="8.4" cy="16.5" r="1.45"/><circle cx="8.4" cy="10.5" r="1.45"/></g>
-        <circle cx="13.5" cy="13.5" r="2.6" fill="var(--rose)"/>
-        <path d="M21.4 21.4 L28.5 28.5" stroke="var(--primary)" stroke-width="3.4" stroke-linecap="round"/>
+      <svg class="logo" width="34" height="34" viewBox="0 0 120 120" aria-hidden="true">
+        <path d="M80 80 L104 104" stroke="#155f5d" stroke-width="11" stroke-linecap="round"/>
+        <path d="M80 80 L104 104" stroke="#2a948f" stroke-width="5" stroke-linecap="round"/>
+        <circle cx="52" cy="52" r="38" fill="var(--primary-soft)" stroke="var(--primary)" stroke-width="8"/>
+        <path d="M30 36a26 26 0 0 1 18-12" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
+        <ellipse cx="40" cy="52" rx="6" ry="7.5" fill="#1e2b30"/><ellipse cx="64" cy="52" rx="6" ry="7.5" fill="#1e2b30"/>
+        <circle cx="42.5" cy="49" r="2.2" fill="#fff"/><circle cx="66.5" cy="49" r="2.2" fill="#fff"/>
+        <ellipse cx="31" cy="63" rx="5.5" ry="3.2" fill="#ef7aa3" opacity=".6"/><ellipse cx="73" cy="63" rx="5.5" ry="3.2" fill="#ef7aa3" opacity=".6"/>
+        <path d="M44 66q8 7 16 0" fill="none" stroke="#1e2b30" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="74" cy="30" r="6" fill="#e392b6" stroke="#c76e97" stroke-width="1.6"/><circle cx="74" cy="30" r="2.2" fill="#7d5aa6"/>
       </svg>
       <span class="wordmark">Histo<b>finder</b></span>
     </a>
@@ -312,7 +325,7 @@ footer.site .wrap { display: flex; gap: 16px; justify-content: space-between; fl
   <div class="wrap">
     <div class="hero">
       <div class="stack" style="gap:22px">
-        <span class="eyebrow">AI pre-screening · colorectal &amp; stomach cancer · MSI</span>
+        <div class="row" style="gap:14px;align-items:center;flex-wrap:nowrap"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="72" height="72" aria-hidden="true">   <!-- "Lens": a cheerful magnifying glass with a little cell reflected in its eye -->   <ellipse cx="56" cy="108" rx="34" ry="5" fill="#1e2b30" opacity=".08"/>   <path d="M80 80 L104 104" stroke="#155f5d" stroke-width="11" stroke-linecap="round"/>   <path d="M80 80 L104 104" stroke="#2a948f" stroke-width="5" stroke-linecap="round"/>   <circle cx="52" cy="52" r="38" fill="#ecf7f5" stroke="#1f7a78" stroke-width="8"/>   <path d="M30 36a26 26 0 0 1 18-12" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/>   <ellipse cx="40" cy="52" rx="6" ry="7.5" fill="#1e2b30"/><ellipse cx="64" cy="52" rx="6" ry="7.5" fill="#1e2b30"/>   <circle cx="42.5" cy="49" r="2.2" fill="#fff"/><circle cx="66.5" cy="49" r="2.2" fill="#fff"/>   <ellipse cx="31" cy="63" rx="5.5" ry="3.2" fill="#ef7aa3" opacity=".6"/><ellipse cx="73" cy="63" rx="5.5" ry="3.2" fill="#ef7aa3" opacity=".6"/>   <path d="M44 66q8 7 16 0" fill="none" stroke="#1e2b30" stroke-width="3" stroke-linecap="round"/>   <circle cx="74" cy="30" r="6" fill="#e392b6" stroke="#c76e97" stroke-width="1.6"/><circle cx="74" cy="30" r="2.2" fill="#7d5aa6"/> </svg> <span class="eyebrow">AI pre-screening · colorectal &amp; stomach cancer · MSI</span></div>
         <h1>Find the patients whose tumours were never tested.</h1>
         <p class="lede">Many people with colorectal or stomach cancer never get the MSI test that decides whether immunotherapy could work. Their slide is already in the lab. Histofinder reads it and flags who should be tested next.</p>
         <div class="row">
@@ -698,7 +711,7 @@ footer.site .wrap { display: flex; gap: 16px; justify-content: space-between; fl
 </main>
 
 <footer class="site">
-  <div class="wrap"><span>Histofinder · Research use only, not for diagnostic use</span><span>Data: The Cancer Genome Atlas (TCGA Research Network)</span></div>
+  <div class="wrap"><span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="22" height="22" aria-hidden="true" style="vertical-align:-5px;margin-right:8px">   <!-- "Lens": a cheerful magnifying glass with a little cell reflected in its eye -->   <ellipse cx="56" cy="108" rx="34" ry="5" fill="#1e2b30" opacity=".08"/>   <path d="M80 80 L104 104" stroke="#155f5d" stroke-width="11" stroke-linecap="round"/>   <path d="M80 80 L104 104" stroke="#2a948f" stroke-width="5" stroke-linecap="round"/>   <circle cx="52" cy="52" r="38" fill="#ecf7f5" stroke="#1f7a78" stroke-width="8"/>   <path d="M30 36a26 26 0 0 1 18-12" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/>   <ellipse cx="40" cy="52" rx="6" ry="7.5" fill="#1e2b30"/><ellipse cx="64" cy="52" rx="6" ry="7.5" fill="#1e2b30"/>   <circle cx="42.5" cy="49" r="2.2" fill="#fff"/><circle cx="66.5" cy="49" r="2.2" fill="#fff"/>   <ellipse cx="31" cy="63" rx="5.5" ry="3.2" fill="#ef7aa3" opacity=".6"/><ellipse cx="73" cy="63" rx="5.5" ry="3.2" fill="#ef7aa3" opacity=".6"/>   <path d="M44 66q8 7 16 0" fill="none" stroke="#1e2b30" stroke-width="3" stroke-linecap="round"/>   <circle cx="74" cy="30" r="6" fill="#e392b6" stroke="#c76e97" stroke-width="1.6"/><circle cx="74" cy="30" r="2.2" fill="#7d5aa6"/> </svg> Histofinder · Research use only, not for diagnostic use</span><span>Data: The Cancer Genome Atlas (TCGA Research Network)</span></div>
 </footer>
 
 <script>
@@ -951,4 +964,5 @@ bindViewer(document.getElementById("demo-viewer"), document.getElementById("demo
 renderAll(); route(); tryPublished();
 </script>
 
-</body></html>
+</body>
+</html>
